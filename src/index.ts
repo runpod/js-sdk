@@ -1,4 +1,4 @@
-import axios from "axios"
+import axios, { Axios } from "axios"
 import { curry } from "ramda"
 
 type ExecutionPolicy = {
@@ -39,9 +39,9 @@ const getAuthHeader = (api_key: string) => ({
 })
 const maxWaitTimeSeconds = 300
 const print = console.log
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+const sleep = (ms: any) => new Promise((resolve: any) => setTimeout(resolve, ms))
 
-const handleErrors = async (axiosRequest) => {
+const handleErrors = async (axiosRequest: any) => {
   const resp = await axiosRequest
   const { status, statusText } = resp
   if (status !== 200) {
@@ -50,7 +50,7 @@ const handleErrors = async (axiosRequest) => {
   return { ...resp.data, started: true, completed: true, succeeded: true }
 }
 
-const getEndpointUrl = (endpointId) => `${runpodServerlessBaseUrl}/${endpointId}`
+const getEndpointUrl = (endpointId: string) => `${runpodServerlessBaseUrl}/${endpointId}`
 
 //run and then poll status
 export const runsync = curry(async (api_key, endpointId, request) => {
@@ -75,7 +75,7 @@ export const runsync = curry(async (api_key, endpointId, request) => {
 })
 
 //wrapper over /run
-export const run = curry((api_key: string, endpointId: string, request) => {
+export const run = curry((api_key: string, endpointId: string, request: EndpointInputPayload) => {
   const url = getEndpointUrl(endpointId) + "/run"
   const authHeader = getAuthHeader(api_key)
   return handleErrors(axios.post(url, request, authHeader))
@@ -142,7 +142,7 @@ class Endpoint {
 }
 
 export default (api_key: string) => ({
-  endpoint: (endpointId) => new Endpoint(api_key, endpointId),
+  endpoint: (endpointId: string) => new Endpoint(api_key, endpointId),
   //template...
   //pod...
 })

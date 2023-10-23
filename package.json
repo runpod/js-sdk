@@ -2,7 +2,7 @@
   "name": "@runpod/sdk",
   "version": "1.0.0",
   "description": "JavaScript SDK for Runpod",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "type": "module",
   "author": "Runpod",
   "dependencies": {
@@ -14,7 +14,12 @@
     "ramda": "^0.29.0"
   },
   "devDependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/ramda": "^0.29.7",
     "esm": "^3.2.25",
     "typescript": "^5.2.2"
+  },
+  "scripts": {
+    "build": "tsc"
   }
 }
