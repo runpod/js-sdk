@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "module": "commonjs",
+    "module": "ES6",
     "outDir": "./dist",
     "rootDir": "./src",
-    "lib": ["ES2022"],
+    "moduleResolution": "node",
+    "lib": ["ES2022", "DOM"],
     "strict": true,
     "esModuleInterop": true
   },

@@ -19,6 +19,9 @@ type EndpointInputPayload = {
 type EndpointIncompleteOutput = {
   status: string
   id: string
+  started: boolean
+  completed: boolean
+  succeeded: boolean
 }
 type EndpointCompletedOutput = {
   status: string
@@ -26,6 +29,9 @@ type EndpointCompletedOutput = {
   output: any
   executionTime: number
   coldStartTime: number
+  started: boolean
+  completed: boolean
+  succeeded: boolean
 }
 
 type EndpointOutput = EndpointCompletedOutput | EndpointIncompleteOutput
@@ -53,9 +59,9 @@ const handleErrors = async (axiosRequest: any) => {
 const getEndpointUrl = (endpointId: string) => `${runpodServerlessBaseUrl}/${endpointId}`
 
 //run and then poll status
-export const runsync = curry(async (api_key, endpointId, request) => {
-  const runResp = await run(api_key, endpointId, request)
-  let data = runResp.data
+export const runsync = curry(async (api_key: string, endpointId: string, request: any) => {
+  const runResp: any = await run(api_key, endpointId, request)
+  let data = { ...runResp }
   const { id } = data
   const authHeader = getAuthHeader(api_key)
   const statusUrl = getEndpointUrl(endpointId) + "/status/" + id
