@@ -1,4 +1,4 @@
-import runpodSdk from ".."
+const runpodSdk = require("@runpod/sdk")
 const { RUNPOD_API_KEY } = process.env
 const endpointId = "qhj9cwwco1pszj"
 if (!RUNPOD_API_KEY) {

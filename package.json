@@ -12,5 +12,9 @@
     "dotenv": "^16.3.1",
     "graphql": "^16.8.1",
     "ramda": "^0.29.0"
+  },
+  "devDependencies": {
+    "esm": "^3.2.25",
+    "typescript": "^5.2.2"
   }
 }
