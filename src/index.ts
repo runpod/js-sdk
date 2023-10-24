@@ -1,4 +1,4 @@
-import axios, { Axios } from "axios"
+import axios, { AxiosResponse } from "axios"
 import { curry } from "ramda"
 
 type ExecutionPolicy = {
@@ -47,7 +47,7 @@ const maxWaitTimeSeconds = 300
 const print = console.log
 const sleep = (ms: any) => new Promise((resolve: any) => setTimeout(resolve, ms))
 
-const handleErrors = async (axiosRequest: any) => {
+const handleErrors = async (axiosRequest: Promise<AxiosResponse>) => {
   const resp = await axiosRequest
   const { status, statusText } = resp
   if (status !== 200) {
