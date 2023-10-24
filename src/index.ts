@@ -28,7 +28,7 @@ type EndpointCompletedOutput = {
   id: string
   output: any
   executionTime: number
-  coldStartTime: number
+  delayTime: number
   started: boolean
   completed: boolean
   succeeded: boolean
@@ -37,9 +37,9 @@ type EndpointCompletedOutput = {
 type EndpointOutput = EndpointCompletedOutput | EndpointIncompleteOutput
 
 const runpodServerlessBaseUrl = "https://api.runpod.ai/v2"
-const getAuthHeader = (api_key: string) => ({
+const getAuthHeader = (apiKey: string) => ({
   headers: {
-    "Authorization": `Bearer ${api_key}`,
+    "Authorization": `Bearer ${apiKey}`,
     "content-type": "application/json",
   },
 })
@@ -59,11 +59,11 @@ const handleErrors = async (axiosRequest: any) => {
 const getEndpointUrl = (endpointId: string) => `${runpodServerlessBaseUrl}/${endpointId}`
 
 //run and then poll status
-export const runsync = curry(async (api_key: string, endpointId: string, request: any) => {
-  const runResp: any = await run(api_key, endpointId, request)
+export const runsync = curry(async (apiKey: string, endpointId: string, request: any) => {
+  const runResp: any = await run(apiKey, endpointId, request)
   let data = { ...runResp }
   const { id } = data
-  const authHeader = getAuthHeader(api_key)
+  const authHeader = getAuthHeader(apiKey)
   const statusUrl = getEndpointUrl(endpointId) + "/status/" + id
   const pollIntervalSeconds = 10
   const start = Date.now()
@@ -77,78 +77,78 @@ export const runsync = curry(async (api_key: string, endpointId: string, request
     data = statusResp.data
     print(`${statusUrl}: ${data.status}`)
   }
-  return { output: data, started: true, completed: true, succeeded: data.status === "COMPLETED" }
+  return { ...data, started: true, completed: true, succeeded: data.status === "COMPLETED" }
 })
 
 //wrapper over /run
-export const run = curry((api_key: string, endpointId: string, request: EndpointInputPayload) => {
+export const run = curry((apiKey: string, endpointId: string, request: EndpointInputPayload) => {
   const url = getEndpointUrl(endpointId) + "/run"
-  const authHeader = getAuthHeader(api_key)
+  const authHeader = getAuthHeader(apiKey)
   return handleErrors(axios.post(url, request, authHeader))
 })
 //wrapper over /status
-export const getStatus = curry((api_key: string, endpointId: string, requestId: string) => {
+export const getStatus = curry((apiKey: string, endpointId: string, requestId: string) => {
   const url = getEndpointUrl(endpointId) + "/status/" + requestId
-  const authHeader = getAuthHeader(api_key)
+  const authHeader = getAuthHeader(apiKey)
   return handleErrors(axios.get(url, authHeader))
 })
 //wrapper over /stream
-export const stream = curry((api_key: string, endpointId: string, requestId: string) => {
+export const stream = curry((apiKey: string, endpointId: string, requestId: string) => {
   const url = getEndpointUrl(endpointId) + "/stream/" + requestId
-  const authHeader = getAuthHeader(api_key)
+  const authHeader = getAuthHeader(apiKey)
   return handleErrors(axios.get(url, authHeader))
 })
 //wrapper over /cancel
-const cancel = curry((api_key: string, endpointId: string, requestId: string) => {
+const cancel = curry((apiKey: string, endpointId: string, requestId: string) => {
   const url = getEndpointUrl(endpointId) + "/cancel/" + requestId
-  const authHeader = getAuthHeader(api_key)
+  const authHeader = getAuthHeader(apiKey)
   return handleErrors(axios.post(url, {}, authHeader))
 })
 //wrapper over /health
-export const getHealth = curry((api_key: string, endpointId: string) => {
+export const getHealth = curry((apiKey: string, endpointId: string) => {
   const url = getEndpointUrl(endpointId) + "/health"
-  const authHeader = getAuthHeader(api_key)
+  const authHeader = getAuthHeader(apiKey)
   return handleErrors(axios.get(url, authHeader))
 })
 //wrapper over /purge-queue
-export const purgeQueue = curry((api_key: string, endpointId: string) => {
+export const purgeQueue = curry((apiKey: string, endpointId: string) => {
   const url = getEndpointUrl(endpointId) + "/purge-queue"
-  const authHeader = getAuthHeader(api_key)
+  const authHeader = getAuthHeader(apiKey)
   return handleErrors(axios.post(url, {}, authHeader))
 })
 
 class Endpoint {
   endpointId: string = ""
-  private api_key: string = ""
-  constructor(api_key: string, endpointId: string) {
-    this.api_key = api_key
+  private apiKey: string = ""
+  constructor(apiKey: string, endpointId: string) {
+    this.apiKey = apiKey
     this.endpointId = endpointId
   }
   async runsync(request: EndpointInputPayload): Promise<EndpointCompletedOutput> {
-    return runsync(this.api_key, this.endpointId, request)
+    return runsync(this.apiKey, this.endpointId, request)
   }
   async run(request: EndpointInputPayload): Promise<string> {
-    return run(this.api_key, this.endpointId, request)
+    return run(this.apiKey, this.endpointId, request)
   }
   async getStatus(requestId: string): Promise<EndpointOutput> {
-    return getStatus(this.api_key, this.endpointId, requestId)
+    return getStatus(this.apiKey, this.endpointId, requestId)
   }
   async stream(requestId: string): Promise<EndpointOutput> {
-    return stream(this.api_key, this.endpointId, requestId)
+    return stream(this.apiKey, this.endpointId, requestId)
   }
   async cancel(requestId: string) {
-    return cancel(this.api_key, this.endpointId, requestId)
+    return cancel(this.apiKey, this.endpointId, requestId)
   }
   async getHealth() {
-    return getHealth(this.api_key, this.endpointId)
+    return getHealth(this.apiKey, this.endpointId)
   }
   async purgeQueue() {
-    return purgeQueue(this.api_key, this.endpointId)
+    return purgeQueue(this.apiKey, this.endpointId)
   }
 }
 
-export default (api_key: string) => ({
-  endpoint: (endpointId: string) => new Endpoint(api_key, endpointId),
+export default (apiKey: string) => ({
+  endpoint: (endpointId: string) => new Endpoint(apiKey, endpointId),
   //template...
   //pod...
 })
