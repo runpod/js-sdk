@@ -7,13 +7,29 @@ if (!(RUNPOD_API_KEY && ENDPOINT_ID)) {
 //OOP
 const runpod = runpodSdk(RUNPOD_API_KEY)
 const endpoint = runpod.endpoint(ENDPOINT_ID)
-const result = await endpoint.runsync({
+const request = {
   input: {
     prompt: "a photo of a horse the size of a Boeing 787",
   },
-})
+}
+
+console.log("\nrunsync")
+const result = await endpoint.runsync(request)
 console.log(result)
 
+console.log("\nrun")
+const runResp = await endpoint.run(request)
+console.log(runResp)
+const { id: requestId } = runResp
+console.log("\nstatus")
+const statusResp = await endpoint.getStatus(requestId)
+console.log(statusResp)
+console.log("\nhealth")
+const healthResp = await endpoint.getHealth()
+console.log(healthResp)
+console.log("\npurge queue")
+const purgeResp = await endpoint.purgeQueue()
+console.log(purgeResp)
 //functional
 const run = runsync(RUNPOD_API_KEY, ENDPOINT_ID)
 const res = await run({
