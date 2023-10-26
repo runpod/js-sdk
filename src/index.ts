@@ -19,9 +19,6 @@ type EndpointInputPayload = {
 type EndpointIncompleteOutput = {
   status: string
   id: string
-  started: boolean
-  completed: boolean
-  succeeded: boolean
 }
 type EndpointCompletedOutput = {
   status: string
@@ -29,12 +26,26 @@ type EndpointCompletedOutput = {
   output: any
   executionTime: number
   delayTime: number
-  started: boolean
-  completed: boolean
-  succeeded: boolean
 }
 
 type EndpointOutput = EndpointCompletedOutput | EndpointIncompleteOutput
+
+type CancelOutput = {
+  status: string
+  id: string
+  executionTime: number
+  delayTime: number
+}
+
+type HealthCheck = {
+  jobs: { completed: number; failed: number; inProgress: number; inQueue: number; retried: number }
+  workers: { idle: number; initializing: number; ready: number; running: number; throttled: number }
+}
+
+type PurgeQueueOutput = {
+  removed: number
+  status: string
+}
 
 const runpodServerlessBaseUrl = "https://api.runpod.ai/v2"
 const getAuthHeader = (apiKey: string) => ({
@@ -51,9 +62,22 @@ const handleErrors = async (axiosRequest: Promise<AxiosResponse>) => {
   const resp = await axiosRequest
   const { status, statusText } = resp
   if (status !== 200) {
+    return { status, statusText }
+  }
+  return { ...resp.data }
+}
+const handleErrorsStatus = async (axiosRequest: Promise<AxiosResponse>) => {
+  const resp = await axiosRequest
+  const { status, statusText } = resp
+  if (status !== 200) {
     return { status, statusText, started: false }
   }
-  return { ...resp.data, started: true, completed: true, succeeded: true }
+  return {
+    ...resp.data,
+    started: true,
+    completed: ["COMPLETED", "FAILED"].includes(resp.data.status),
+    succeeded: resp.data.status === "COMPLETED",
+  }
 }
 
 const getEndpointUrl = (endpointId: string) => `${runpodServerlessBaseUrl}/${endpointId}`
@@ -61,21 +85,20 @@ const getEndpointUrl = (endpointId: string) => `${runpodServerlessBaseUrl}/${end
 //run and then poll status
 export const runsync = curry(async (apiKey: string, endpointId: string, request: any) => {
   const runResp: any = await run(apiKey, endpointId, request)
-  let data = { ...runResp }
+  let data: EndpointOutput = { ...runResp }
   const { id } = data
   const authHeader = getAuthHeader(apiKey)
-  const statusUrl = getEndpointUrl(endpointId) + "/status/" + id
+  const getReqStatus = getStatus(apiKey, endpointId)
   const pollIntervalSeconds = 10
   const start = Date.now()
   while (!["COMPLETED", "FAILED"].includes(data.status)) {
     if (Date.now() - start > maxWaitTimeSeconds * 1000) {
-      print(`${statusUrl} timed out after ${maxWaitTimeSeconds} seconds`)
+      print(`${id} timed out after ${maxWaitTimeSeconds} seconds`)
       return { ...data, started: true, completed: false }
     }
     await sleep(1000 * pollIntervalSeconds)
-    const statusResp = await axios.get(statusUrl, authHeader)
-    data = statusResp.data
-    print(`${statusUrl}: ${data.status}`)
+    data = await getReqStatus(id)
+    print(`${id}: ${data.status}`)
   }
   return { ...data, started: true, completed: true, succeeded: data.status === "COMPLETED" }
 })
@@ -90,7 +113,7 @@ export const run = curry((apiKey: string, endpointId: string, request: EndpointI
 export const getStatus = curry((apiKey: string, endpointId: string, requestId: string) => {
   const url = getEndpointUrl(endpointId) + "/status/" + requestId
   const authHeader = getAuthHeader(apiKey)
-  return handleErrors(axios.get(url, authHeader))
+  return handleErrorsStatus(axios.get(url, authHeader))
 })
 //wrapper over /stream
 export const stream = curry((apiKey: string, endpointId: string, requestId: string) => {
@@ -136,13 +159,13 @@ class Endpoint {
   async stream(requestId: string): Promise<EndpointOutput> {
     return stream(this.apiKey, this.endpointId, requestId)
   }
-  async cancel(requestId: string) {
+  async cancel(requestId: string): Promise<CancelOutput> {
     return cancel(this.apiKey, this.endpointId, requestId)
   }
-  async getHealth() {
+  async getHealth(): Promise<HealthCheck> {
     return getHealth(this.apiKey, this.endpointId)
   }
-  async purgeQueue() {
+  async purgeQueue(): Promise<PurgeQueueOutput> {
     return purgeQueue(this.apiKey, this.endpointId)
   }
 }
