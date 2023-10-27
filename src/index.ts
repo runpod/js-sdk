@@ -87,20 +87,24 @@ export const runSync = curry(async (apiKey: string, endpointId: string, request:
   const runResp: any = await runsync(apiKey, endpointId, request)
   let data: EndpointOutput = { ...runResp }
   const { id } = data
-  const authHeader = getAuthHeader(apiKey)
-  const getReqStatus = getStatus(apiKey, endpointId)
-  const pollIntervalSeconds = 10
+  const getReqStatus = statusSync(apiKey, endpointId)
   const start = Date.now()
   while (!["COMPLETED", "FAILED"].includes(data.status)) {
     if (Date.now() - start > maxWaitTimeSeconds * 1000) {
       print(`${id} timed out after ${maxWaitTimeSeconds} seconds`)
       return { ...data, started: true, completed: false }
     }
-    await sleep(1000 * pollIntervalSeconds)
     data = await getReqStatus(id)
     print(`${id}: ${data.status}`)
   }
   return { ...data, started: true, completed: true, succeeded: data.status === "COMPLETED" }
+})
+
+//wrapper over /status-sync
+const statusSync = curry((apiKey: string, endpointId: string, requestId: String) => {
+  const url = getEndpointUrl(endpointId) + "/status-sync/" + requestId
+  const authHeader = getAuthHeader(apiKey)
+  return handleErrorsStatus(axios.get(url, authHeader))
 })
 
 //wrapper over /runsync
