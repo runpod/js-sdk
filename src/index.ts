@@ -83,8 +83,8 @@ const handleErrorsStatus = async (axiosRequest: Promise<AxiosResponse>) => {
 const getEndpointUrl = (endpointId: string) => `${runpodServerlessBaseUrl}/${endpointId}`
 
 //run and then poll status
-export const runsync = curry(async (apiKey: string, endpointId: string, request: any) => {
-  const runResp: any = await run(apiKey, endpointId, request)
+export const runSync = curry(async (apiKey: string, endpointId: string, request: any) => {
+  const runResp: any = await runsync(apiKey, endpointId, request)
   let data: EndpointOutput = { ...runResp }
   const { id } = data
   const authHeader = getAuthHeader(apiKey)
@@ -101,6 +101,13 @@ export const runsync = curry(async (apiKey: string, endpointId: string, request:
     print(`${id}: ${data.status}`)
   }
   return { ...data, started: true, completed: true, succeeded: data.status === "COMPLETED" }
+})
+
+//wrapper over /runsync
+const runsync = curry((apiKey: string, endpointId: string, request: EndpointInputPayload) => {
+  const url = getEndpointUrl(endpointId) + "/runsync"
+  const authHeader = getAuthHeader(apiKey)
+  return handleErrorsStatus(axios.post(url, request, authHeader))
 })
 
 //wrapper over /run
@@ -147,8 +154,8 @@ class Endpoint {
     this.apiKey = apiKey
     this.endpointId = endpointId
   }
-  async runsync(request: EndpointInputPayload): Promise<EndpointCompletedOutput> {
-    return runsync(this.apiKey, this.endpointId, request)
+  async runSync(request: EndpointInputPayload): Promise<EndpointCompletedOutput> {
+    return runSync(this.apiKey, this.endpointId, request)
   }
   async run(request: EndpointInputPayload): Promise<string> {
     return run(this.apiKey, this.endpointId, request)
