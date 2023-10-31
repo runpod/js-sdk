@@ -1,5 +1,5 @@
 {
-  "name": "@nathaniel-runpod-org/sdk",
+  "name": "runpod-sdk",
   "version": "1.0.0",
   "description": "JavaScript SDK for Runpod",
   "main": "dist/index.js",

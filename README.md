@@ -6,11 +6,11 @@ JavaScript client sdk for runpod
 
 ```js
 const { RUNPOD_API_KEY, ENDPOINT_ID } = process.env;
-import runpodSdk from "@nathaniel-runpod-org/sdk";
+import runpodSdk from "runpod-sdk";
 
 const runpod = runpodSdk(RUNPOD_API_KEY);
 const endpoint = runpod.endpoint(ENDPOINT_ID);
-const result = await endpoint.runsync({
+const result = await endpoint.runSync({
   input: {
     prompt: "a photo of a horse the size of a Boeing 787",
   },
@@ -37,10 +37,10 @@ const status = await endpoint.getStatus(requestId);
 
 If the request has been completed, the status object returned will contain the `output` of the request.
 
-If you don't want to manage polling for request completion yourself, you can simply call `runsync`, which will enqueue the request and then poll in a loop (by default, once every 10 seconds) until the request completes, fails or times out.
+If you don't want to manage polling for request completion yourself, you can simply call `runSync`, which will enqueue the request and then poll in a loop (by default, once every 10 seconds) until the request completes, fails or times out.
 
 ```js
-const result = await endpoint.runsync({
+const result = await endpoint.runSync({
   input: {
     prompt: "a photo of a horse the size of a Boeing 787",
   },

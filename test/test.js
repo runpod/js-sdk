@@ -1,4 +1,4 @@
-import runpodSdk, { runSync } from "../dist/index.js"
+import runpodSdk from "../dist/index.js"
 
 const { RUNPOD_API_KEY, ENDPOINT_ID } = process.env
 if (!(RUNPOD_API_KEY && ENDPOINT_ID)) {
@@ -39,12 +39,3 @@ console.log(await endpoint.getHealth())
 console.log("runSync")
 const result = await endpoint.runSync(request)
 console.log(result)
-//functional
-// const run = runSync(RUNPOD_API_KEY, ENDPOINT_ID)
-// const res = await run({
-//   input: {
-//     prompt: "a photo of a horse the size of a Boeing 787",
-//   },
-// })
-
-// console.log(res)
