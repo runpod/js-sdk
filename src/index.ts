@@ -1,27 +1,26 @@
 import axios, { AxiosResponse } from "axios"
 import { curry, clamp } from "ramda"
-
-type ExecutionPolicy = {
+export type ExecutionPolicy = {
   ttl?: number
   executionTimeout?: number
 }
-type S3Config = {
+export type S3Config = {
   accessId: string
   accessSecret: string
   bucketName: string
   endpointUrl: string
 }
-type EndpointInputPayload = {
+export type EndpointInputPayload = {
   input: any
   webhook?: string
   s3Config?: S3Config
   policy?: ExecutionPolicy
 }
-type EndpointIncompleteOutput = {
+export type EndpointIncompleteOutput = {
   status: string
   id: string
 }
-type EndpointCompletedOutput = {
+export type EndpointCompletedOutput = {
   status: string
   id: string
   output: any
@@ -29,21 +28,21 @@ type EndpointCompletedOutput = {
   delayTime: number
 }
 
-type EndpointOutput = EndpointCompletedOutput | EndpointIncompleteOutput
+export type EndpointOutput = EndpointCompletedOutput | EndpointIncompleteOutput
 
-type CancelOutput = {
+export type CancelOutput = {
   status: string
   id: string
   executionTime: number
   delayTime: number
 }
 
-type HealthCheck = {
+export type HealthCheck = {
   jobs: { completed: number; failed: number; inProgress: number; inQueue: number; retried: number }
   workers: { idle: number; initializing: number; ready: number; running: number; throttled: number }
 }
 
-type PurgeQueueOutput = {
+export type PurgeQueueOutput = {
   removed: number
   status: string
 }
