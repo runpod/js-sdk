@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from "axios"
-import { curry } from "ramda"
+import { curry, clamp } from "ramda"
 
 type ExecutionPolicy = {
   ttl?: number
@@ -87,18 +87,12 @@ export const runSync = curry(
   async (apiKey: string, endpointId: string, request: EndpointInputPayload) => {
     const maxWaitTimeMs = request?.policy?.executionTimeout ?? 300 * 1000
     const startTime = Date.now()
-    const getRemainingTime = () =>
-      Math.max(5000, Math.min(90000, maxWaitTimeMs - (Date.now() - startTime)))
-    const setTimeoutToRemainingTime = (request: EndpointInputPayload) => ({
-      ...request,
-      policy: { ...request?.policy, executionTimeout: getRemainingTime() },
-    })
-    const runResp: any = await runsync(apiKey, endpointId, setTimeoutToRemainingTime(request))
+    const getRemainingTime = () => clamp(1000, 90000, maxWaitTimeMs - (Date.now() - startTime))
+    const runResp: any = await runsync(apiKey, endpointId, request)
     let data: EndpointOutput = { ...runResp }
     const { id } = data
     const start = Date.now()
     while (!["COMPLETED", "FAILED"].includes(data.status)) {
-      print(`${getRemainingTime() / 1000} seconds left in request`)
       if (Date.now() - start > maxWaitTimeMs) {
         print(`${id} timed out after ${maxWaitTimeMs / 1000} seconds`)
         return { ...data, started: true, completed: false }
@@ -111,13 +105,11 @@ export const runSync = curry(
 )
 
 //wrapper over /status-sync
-const statusSync = curry(
-  (apiKey: string, endpointId: string, requestId: String, wait: number = 90000) => {
-    const url = getEndpointUrl(endpointId) + "/status-sync/" + requestId + `?wait=${wait}`
-    const authHeader = getAuthHeader(apiKey)
-    return handleErrorsStatus(axios.get(url, authHeader))
-  }
-)
+const statusSync = curry((apiKey: string, endpointId: string, requestId: String, wait: number) => {
+  const url = getEndpointUrl(endpointId) + "/status-sync/" + requestId + `?wait=${wait}`
+  const authHeader = getAuthHeader(apiKey)
+  return handleErrorsStatus(axios.get(url, authHeader))
+})
 
 //wrapper over /runsync
 const runsync = curry((apiKey: string, endpointId: string, request: EndpointInputPayload) => {
