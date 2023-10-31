@@ -1,8 +1,9 @@
 {
   "name": "runpod-sdk",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "JavaScript SDK for Runpod",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
   "author": "Runpod",
   "dependencies": {

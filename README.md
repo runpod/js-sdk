@@ -37,7 +37,7 @@ const status = await endpoint.getStatus(requestId);
 
 If the request has been completed, the status object returned will contain the `output` of the request.
 
-If you don't want to manage polling for request completion yourself, you can simply call `runSync`, which will enqueue the request and then poll in a loop (by default, once every 10 seconds) until the request completes, fails or times out.
+If you don't want to manage polling for request completion yourself, you can simply call `runSync`, which will enqueue the request and then poll until the request completes, fails or times out.
 
 ```js
 const result = await endpoint.runSync({
