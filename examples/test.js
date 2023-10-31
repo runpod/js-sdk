@@ -2,6 +2,7 @@ import runpodSdk from "../dist/index.js"
 
 const { RUNPOD_API_KEY, ENDPOINT_ID } = process.env
 if (!(RUNPOD_API_KEY && ENDPOINT_ID)) {
+  console.log("please supply RUNPOD_API_KEY and ENDPOINT_ID as environment variables")
   process.exit()
 }
 //OOP
