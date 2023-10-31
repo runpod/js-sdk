@@ -2,7 +2,8 @@ import axios, { AxiosResponse } from "axios"
 import { curry } from "ramda"
 
 type ExecutionPolicy = {
-  executionTimeout: number
+  ttl?: number
+  executionTimeout?: number
 }
 type S3Config = {
   accessId: string
@@ -54,7 +55,6 @@ const getAuthHeader = (apiKey: string) => ({
     "content-type": "application/json",
   },
 })
-const maxWaitTimeSeconds = 300
 const print = console.log
 const sleep = (ms: any) => new Promise((resolve: any) => setTimeout(resolve, ms))
 
@@ -64,7 +64,7 @@ const handleErrors = async (axiosRequest: Promise<AxiosResponse>) => {
   if (status !== 200) {
     return { status, statusText }
   }
-  return { ...resp.data }
+  return resp.data
 }
 const handleErrorsStatus = async (axiosRequest: Promise<AxiosResponse>) => {
   const resp = await axiosRequest
@@ -83,29 +83,41 @@ const handleErrorsStatus = async (axiosRequest: Promise<AxiosResponse>) => {
 const getEndpointUrl = (endpointId: string) => `${runpodServerlessBaseUrl}/${endpointId}`
 
 //run and then poll status
-export const runSync = curry(async (apiKey: string, endpointId: string, request: any) => {
-  const runResp: any = await runsync(apiKey, endpointId, request)
-  let data: EndpointOutput = { ...runResp }
-  const { id } = data
-  const getReqStatus = statusSync(apiKey, endpointId)
-  const start = Date.now()
-  while (!["COMPLETED", "FAILED"].includes(data.status)) {
-    if (Date.now() - start > maxWaitTimeSeconds * 1000) {
-      print(`${id} timed out after ${maxWaitTimeSeconds} seconds`)
-      return { ...data, started: true, completed: false }
+export const runSync = curry(
+  async (apiKey: string, endpointId: string, request: EndpointInputPayload) => {
+    const maxWaitTimeMs = request?.policy?.executionTimeout ?? 300 * 1000
+    const startTime = Date.now()
+    const getRemainingTime = () =>
+      Math.max(5000, Math.min(90000, maxWaitTimeMs - (Date.now() - startTime)))
+    const setTimeoutToRemainingTime = (request: EndpointInputPayload) => ({
+      ...request,
+      policy: { ...request?.policy, executionTimeout: getRemainingTime() },
+    })
+    const runResp: any = await runsync(apiKey, endpointId, setTimeoutToRemainingTime(request))
+    let data: EndpointOutput = { ...runResp }
+    const { id } = data
+    const start = Date.now()
+    while (!["COMPLETED", "FAILED"].includes(data.status)) {
+      print(`${getRemainingTime() / 1000} seconds left in request`)
+      if (Date.now() - start > maxWaitTimeMs) {
+        print(`${id} timed out after ${maxWaitTimeMs / 1000} seconds`)
+        return { ...data, started: true, completed: false }
+      }
+      data = await statusSync(apiKey, endpointId, id, getRemainingTime())
+      print(`${id}: ${data.status}`)
     }
-    data = await getReqStatus(id)
-    print(`${id}: ${data.status}`)
+    return { ...data, started: true, completed: true, succeeded: data.status === "COMPLETED" }
   }
-  return { ...data, started: true, completed: true, succeeded: data.status === "COMPLETED" }
-})
+)
 
 //wrapper over /status-sync
-const statusSync = curry((apiKey: string, endpointId: string, requestId: String) => {
-  const url = getEndpointUrl(endpointId) + "/status-sync/" + requestId
-  const authHeader = getAuthHeader(apiKey)
-  return handleErrorsStatus(axios.get(url, authHeader))
-})
+const statusSync = curry(
+  (apiKey: string, endpointId: string, requestId: String, wait: number = 90000) => {
+    const url = getEndpointUrl(endpointId) + "/status-sync/" + requestId + `?wait=${wait}`
+    const authHeader = getAuthHeader(apiKey)
+    return handleErrorsStatus(axios.get(url, authHeader))
+  }
+)
 
 //wrapper over /runsync
 const runsync = curry((apiKey: string, endpointId: string, request: EndpointInputPayload) => {
