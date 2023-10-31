@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from "axios"
-import { curry, clamp } from "ramda"
+import { curry, clamp, isNil } from "ramda"
 export type ExecutionPolicy = {
   ttl?: number
   executionTimeout?: number
@@ -184,8 +184,20 @@ class Endpoint {
   }
 }
 
-export default (apiKey: string) => ({
-  endpoint: (endpointId: string) => new Endpoint(apiKey, endpointId),
-  //template...
-  //pod...
-})
+export default (apiKey: string) => {
+  if (isNil(apiKey)) {
+    print("Api key not supplied")
+    return null
+  }
+  return {
+    endpoint: (endpointId: string) => {
+      if (isNil(endpointId)) {
+        print("Endpoint id not supplied")
+        return null
+      }
+      return new Endpoint(apiKey, endpointId)
+    },
+    //template...
+    //pod...
+  }
+}
