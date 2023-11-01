@@ -10,8 +10,7 @@ const runpod = runpodSdk(RUNPOD_API_KEY)
 const endpoint = runpod.endpoint(ENDPOINT_ID)
 const request = {
   input: {
-    delay: 100,
-    name: "nate",
+    prompt: "photo of a horse",
   },
   policy: {
     executionTimeout: 120 * 1000,

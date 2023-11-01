@@ -10,7 +10,7 @@ const endpoint = runpod.endpoint(ENDPOINT_ID)
 
 const result = await endpoint.runSync({
   input: {
-    prompt: "Hi, what's your name?",
+    prompt: "photo of a horse",
   },
 })
 

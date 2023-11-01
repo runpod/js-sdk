@@ -110,7 +110,7 @@ export const runSync = curry(
 //wrapper over /status-sync
 const statusSync = curry(
   (baseUrl: string, apiKey: string, endpointId: string, requestId: String, wait: number) => {
-    const url = getEndpointUrl(endpointId) + "/status-sync/" + requestId + `?wait=${wait}`
+    const url = getEndpointUrl(baseUrl, endpointId) + "/status-sync/" + requestId + `?wait=${wait}`
     const authHeader = getAuthHeader(apiKey)
     return handleErrorsStatus(axios.get(url, authHeader))
   }
@@ -119,7 +119,7 @@ const statusSync = curry(
 //wrapper over /runsync
 const runsync = curry(
   (baseUrl: string, apiKey: string, endpointId: string, request: EndpointInputPayload) => {
-    const url = getEndpointUrl(endpointId) + "/runsync"
+    const url = getEndpointUrl(baseUrl, endpointId) + "/runsync"
     const authHeader = getAuthHeader(apiKey)
     return handleErrorsStatus(axios.post(url, request, authHeader))
   }
@@ -128,7 +128,7 @@ const runsync = curry(
 //wrapper over /run
 export const run = curry(
   (baseUrl: string, apiKey: string, endpointId: string, request: EndpointInputPayload) => {
-    const url = getEndpointUrl(endpointId) + "/run"
+    const url = getEndpointUrl(baseUrl, endpointId) + "/run"
     const authHeader = getAuthHeader(apiKey)
     return handleErrors(axios.post(url, request, authHeader))
   }
@@ -136,7 +136,7 @@ export const run = curry(
 //wrapper over /status
 export const getStatus = curry(
   (baseUrl: string, apiKey: string, endpointId: string, requestId: string) => {
-    const url = getEndpointUrl(endpointId) + "/status/" + requestId
+    const url = getEndpointUrl(baseUrl, endpointId) + "/status/" + requestId
     const authHeader = getAuthHeader(apiKey)
     return handleErrorsStatus(axios.get(url, authHeader))
   }
@@ -144,26 +144,26 @@ export const getStatus = curry(
 //wrapper over /stream
 export const stream = curry(
   (baseUrl: string, apiKey: string, endpointId: string, requestId: string) => {
-    const url = getEndpointUrl(endpointId) + "/stream/" + requestId
+    const url = getEndpointUrl(baseUrl, endpointId) + "/stream/" + requestId
     const authHeader = getAuthHeader(apiKey)
     return handleErrors(axios.get(url, authHeader))
   }
 )
 //wrapper over /cancel
 const cancel = curry((baseUrl: string, apiKey: string, endpointId: string, requestId: string) => {
-  const url = getEndpointUrl(endpointId) + "/cancel/" + requestId
+  const url = getEndpointUrl(baseUrl, endpointId) + "/cancel/" + requestId
   const authHeader = getAuthHeader(apiKey)
   return handleErrors(axios.post(url, {}, authHeader))
 })
 //wrapper over /health
 export const getHealth = curry((baseUrl: string, apiKey: string, endpointId: string) => {
-  const url = getEndpointUrl(endpointId) + "/health"
+  const url = getEndpointUrl(baseUrl, endpointId) + "/health"
   const authHeader = getAuthHeader(apiKey)
   return handleErrors(axios.get(url, authHeader))
 })
 //wrapper over /purge-queue
 export const purgeQueue = curry((baseUrl: string, apiKey: string, endpointId: string) => {
-  const url = getEndpointUrl(endpointId) + "/purge-queue"
+  const url = getEndpointUrl(baseUrl, endpointId) + "/purge-queue"
   const authHeader = getAuthHeader(apiKey)
   return handleErrors(axios.post(url, {}, authHeader))
 })
