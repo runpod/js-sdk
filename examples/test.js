@@ -1,13 +1,13 @@
-import runpodSdk from "../dist/index.js"
+import runpodSdk, { runpodServerlessBaseUrlDev } from "../dist/index.js"
 
-const { RUNPOD_API_KEY, ENDPOINT_ID } = process.env
-if (!(RUNPOD_API_KEY && ENDPOINT_ID)) {
-  console.log("please supply RUNPOD_API_KEY and ENDPOINT_ID as environment variables")
+const { RUNPOD_API_KEY } = process.env
+if (!RUNPOD_API_KEY) {
+  console.log("please supply RUNPOD_API_KEY as an environment variable")
   process.exit()
 }
 //OOP
-const runpod = runpodSdk(RUNPOD_API_KEY)
-const endpoint = runpod.endpoint(ENDPOINT_ID)
+const runpod = runpodSdk(RUNPOD_API_KEY, { baseUrl: runpodServerlessBaseUrlDev })
+const endpoint = runpod.endpoint("mock")
 const request = {
   input: {
     prompt: "photo of a horse",
