@@ -22,7 +22,7 @@ const result = await endpoint.runSync({
 Once an endpoint has been created, you can send requests to the queue:
 
 ```js
-const requestId = await endpoint.run({
+const { id } = await endpoint.run({
   input: {
     prompt: "a photo of a horse the size of a Boeing 787",
   },
@@ -32,7 +32,7 @@ const requestId = await endpoint.run({
 You can check on the status of this request once you have the id:
 
 ```js
-const status = await endpoint.getStatus(requestId);
+const status = await endpoint.getStatus(id);
 ```
 
 If the request has been completed, the status object returned will contain the `output` of the request.
@@ -58,3 +58,20 @@ For long running applications or troubleshooting, you may want to check the heal
 ```js
 const health = await endpoint.getHealth();
 ```
+
+Some Runpod endpoints are configured to yield multiple results for a single input, which can be streamed locally:
+
+```js
+const { id } = await endpoint.run({
+  input: {
+    prompt: "7 photos of a horse the size of a Boeing 787",
+  },
+});
+
+for await (const result of endpoint.stream(id)) {
+  console.log("Stream yielded another photo:");
+  console.log(result.output);
+}
+```
+
+(this horse photo endpoint is fictitious, but it shows why you might want a stream of results)
