@@ -5,7 +5,6 @@ if (!RUNPOD_API_KEY) {
   console.log("please supply RUNPOD_API_KEY as an environment variable")
   process.exit()
 }
-//OOP
 const runpod = runpodSdk(RUNPOD_API_KEY, { baseUrl: runpodServerlessBaseUrlDev })
 const endpoint = runpod.endpoint("mock")
 const request = {

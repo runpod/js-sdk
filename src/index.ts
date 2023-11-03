@@ -30,6 +30,11 @@ export type EndpointCompletedOutput = {
 
 export type EndpointOutput = EndpointCompletedOutput | EndpointIncompleteOutput
 
+export type EndpointStreamOutput = {
+  status: string
+  stream: [any]
+}
+
 export type CancelOutput = {
   status: string
   id: string
@@ -142,13 +147,21 @@ export const getStatus = curry(
   }
 )
 //wrapper over /stream
-export const stream = curry(
-  (baseUrl: string, apiKey: string, endpointId: string, requestId: string) => {
+async function* stream(baseUrl: string, apiKey: string, endpointId: string, requestId: string) {
+  let completed = false
+  while (!completed) {
     const url = getEndpointUrl(baseUrl, endpointId) + "/stream/" + requestId
     const authHeader = getAuthHeader(apiKey)
-    return handleErrors(axios.get(url, authHeader))
+    const resp = await handleErrors(axios.get(url, authHeader))
+    if (["COMPLETED", "FAILED"].includes(resp.status)) {
+      completed = true
+    }
+    for (const output of resp?.stream) {
+      yield output
+    }
   }
-)
+}
+
 //wrapper over /cancel
 const cancel = curry((baseUrl: string, apiKey: string, endpointId: string, requestId: string) => {
   const url = getEndpointUrl(baseUrl, endpointId) + "/cancel/" + requestId
@@ -186,7 +199,7 @@ class Endpoint {
   async getStatus(requestId: string): Promise<EndpointOutput> {
     return getStatus(this.baseUrl, this.apiKey, this.endpointId, requestId)
   }
-  async stream(requestId: string): Promise<EndpointOutput> {
+  stream(requestId: string): AsyncGenerator<EndpointCompletedOutput> {
     return stream(this.baseUrl, this.apiKey, this.endpointId, requestId)
   }
   async cancel(requestId: string): Promise<CancelOutput> {
