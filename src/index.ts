@@ -147,7 +147,12 @@ export const getStatus = curry(
   }
 )
 //wrapper over /stream
-async function* stream(baseUrl: string, apiKey: string, endpointId: string, requestId: string) {
+export async function* stream(
+  baseUrl: string,
+  apiKey: string,
+  endpointId: string,
+  requestId: string
+) {
   let completed = false
   while (!completed) {
     const url = getEndpointUrl(baseUrl, endpointId) + "/stream/" + requestId
