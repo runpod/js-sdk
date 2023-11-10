@@ -17,6 +17,7 @@ export type EndpointInputPayload = {
   policy?: ExecutionPolicy
 }
 export type EndpointIncompleteOutput = {
+  delayTime?: number
   status: string
   id: string
 }
@@ -82,27 +83,34 @@ const handleErrorsStatus = async (axiosRequest: Promise<AxiosResponse>) => {
   return {
     ...resp.data,
     started: true,
-    completed: ["COMPLETED", "FAILED"].includes(resp.data.status),
+    completed: isCompleted(resp.data.status),
     succeeded: resp.data.status === "COMPLETED",
   }
 }
 export const runpodServerlessBaseUrlProd = "https://api.runpod.ai/v2"
 export const runpodServerlessBaseUrlDev = "https://dev-api.runpod.ai/v2"
 const getEndpointUrl = curry((baseUrl, endpointId: string) => `${baseUrl}/${endpointId}`)
+const isCompleted = (status: string) =>
+  ["COMPLETED", "FAILED", "CANCELLED", "TIMED_OUT"].includes(status)
 
 //run and then poll status
 export const runSync = curry(
-  async (baseUrl: string, apiKey: string, endpointId: string, request: EndpointInputPayload) => {
-    const maxWaitTimeMs = request?.policy?.executionTimeout ?? 300 * 1000
+  async (
+    baseUrl: string,
+    apiKey: string,
+    endpointId: string,
+    request: EndpointInputPayload,
+    wait: number = 90000
+  ) => {
     const startTime = Date.now()
-    const getRemainingTime = () => clamp(1000, 90000, maxWaitTimeMs - (Date.now() - startTime))
+    const getRemainingTime = () => clamp(1000, 90000, wait - (Date.now() - startTime))
     const runResp: any = await runsync(baseUrl, apiKey, endpointId, request)
     let data: EndpointOutput = { ...runResp }
     const { id } = data
     const start = Date.now()
-    while (!["COMPLETED", "FAILED"].includes(data.status)) {
-      if (Date.now() - start > maxWaitTimeMs) {
-        print(`${id} timed out after ${maxWaitTimeMs / 1000} seconds`)
+    while (!isCompleted(data.status)) {
+      if (Date.now() - start > wait) {
+        print(`${id} timed out after ${wait / 1000} seconds`)
         return { ...data, started: true, completed: false }
       }
       data = await statusSync(baseUrl, apiKey, endpointId, id, getRemainingTime())
@@ -114,7 +122,13 @@ export const runSync = curry(
 
 //wrapper over /status-sync
 const statusSync = curry(
-  (baseUrl: string, apiKey: string, endpointId: string, requestId: String, wait: number) => {
+  (
+    baseUrl: string,
+    apiKey: string,
+    endpointId: string,
+    requestId: String,
+    wait: number = 90000
+  ) => {
     const url = getEndpointUrl(baseUrl, endpointId) + "/status-sync/" + requestId + `?wait=${wait}`
     const authHeader = getAuthHeader(apiKey)
     return handleErrorsStatus(axios.get(url, authHeader))
@@ -123,8 +137,14 @@ const statusSync = curry(
 
 //wrapper over /runsync
 const runsync = curry(
-  (baseUrl: string, apiKey: string, endpointId: string, request: EndpointInputPayload) => {
-    const url = getEndpointUrl(baseUrl, endpointId) + "/runsync"
+  (
+    baseUrl: string,
+    apiKey: string,
+    endpointId: string,
+    request: EndpointInputPayload,
+    wait: number
+  ) => {
+    const url = getEndpointUrl(baseUrl, endpointId) + "/runsync" + `?wait=${wait}`
     const authHeader = getAuthHeader(apiKey)
     return handleErrorsStatus(axios.post(url, request, authHeader))
   }
@@ -139,15 +159,30 @@ export const run = curry(
   }
 )
 //wrapper over /status
-export const getStatus = curry(
+export const status = curry(
   (baseUrl: string, apiKey: string, endpointId: string, requestId: string) => {
     const url = getEndpointUrl(baseUrl, endpointId) + "/status/" + requestId
     const authHeader = getAuthHeader(apiKey)
     return handleErrorsStatus(axios.get(url, authHeader))
   }
 )
-//wrapper over /stream
-export async function* stream(
+
+//wrapper over /status
+export const stream = curry(
+  (
+    baseUrl: string,
+    apiKey: string,
+    endpointId: string,
+    requestId: string,
+    wait: number = 10000
+  ) => {
+    const url = getEndpointUrl(baseUrl, endpointId) + "/stream/" + requestId + `?wait=${wait}`
+    const authHeader = getAuthHeader(apiKey)
+    return handleErrorsStatus(axios.get(url, authHeader))
+  }
+)
+//generator yielding results of stream
+export async function* streamResults(
   baseUrl: string,
   apiKey: string,
   endpointId: string,
@@ -158,11 +193,12 @@ export async function* stream(
     const url = getEndpointUrl(baseUrl, endpointId) + "/stream/" + requestId
     const authHeader = getAuthHeader(apiKey)
     const resp = await handleErrors(axios.get(url, authHeader))
-    if (["COMPLETED", "FAILED"].includes(resp.status)) {
+    if (isCompleted(resp.status)) {
       completed = true
     }
+    console.log(resp)
     for (const output of resp?.stream) {
-      yield output
+      yield { status: resp?.status, output }
     }
   }
 }
@@ -174,7 +210,7 @@ const cancel = curry((baseUrl: string, apiKey: string, endpointId: string, reque
   return handleErrors(axios.post(url, {}, authHeader))
 })
 //wrapper over /health
-export const getHealth = curry((baseUrl: string, apiKey: string, endpointId: string) => {
+export const health = curry((baseUrl: string, apiKey: string, endpointId: string) => {
   const url = getEndpointUrl(baseUrl, endpointId) + "/health"
   const authHeader = getAuthHeader(apiKey)
   return handleErrors(axios.get(url, authHeader))
@@ -195,23 +231,32 @@ class Endpoint {
     this.apiKey = apiKey
     this.endpointId = endpointId
   }
-  async runSync(request: EndpointInputPayload): Promise<EndpointCompletedOutput> {
-    return runSync(this.baseUrl, this.apiKey, this.endpointId, request)
+  async runSync(
+    request: EndpointInputPayload,
+    wait: number = 90000
+  ): Promise<EndpointCompletedOutput> {
+    return runSync(this.baseUrl, this.apiKey, this.endpointId, request, wait)
   }
   async run(request: EndpointInputPayload): Promise<string> {
     return run(this.baseUrl, this.apiKey, this.endpointId, request)
   }
-  async getStatus(requestId: string): Promise<EndpointOutput> {
-    return getStatus(this.baseUrl, this.apiKey, this.endpointId, requestId)
+  async status(requestId: string): Promise<EndpointOutput> {
+    return status(this.baseUrl, this.apiKey, this.endpointId, requestId)
   }
-  stream(requestId: string): AsyncGenerator<EndpointCompletedOutput> {
-    return stream(this.baseUrl, this.apiKey, this.endpointId, requestId)
+  async statusSync(requestId: string, wait: number = 90000): Promise<EndpointOutput> {
+    return statusSync(this.baseUrl, this.apiKey, this.endpointId, requestId, wait)
+  }
+  async stream(requestId: string, wait: number = 10000): Promise<EndpointStreamOutput> {
+    return stream(this.baseUrl, this.apiKey, this.endpointId, requestId, wait)
+  }
+  streamResults(requestId: string): AsyncGenerator<any> {
+    return streamResults(this.baseUrl, this.apiKey, this.endpointId, requestId)
   }
   async cancel(requestId: string): Promise<CancelOutput> {
     return cancel(this.baseUrl, this.apiKey, this.endpointId, requestId)
   }
-  async getHealth(): Promise<HealthCheck> {
-    return getHealth(this.baseUrl, this.apiKey, this.endpointId)
+  async health(): Promise<HealthCheck> {
+    return health(this.baseUrl, this.apiKey, this.endpointId)
   }
   async purgeQueue(): Promise<PurgeQueueOutput> {
     return purgeQueue(this.baseUrl, this.apiKey, this.endpointId)

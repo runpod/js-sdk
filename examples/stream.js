@@ -18,7 +18,8 @@ console.log("\nrun")
 const runResp = await endpoint.run(request)
 console.log(runResp)
 const { id } = runResp
-
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+await sleep(5000)
 for await (const result of endpoint.stream(id)) {
   console.log(`stream yielded ${JSON.stringify(result, null, 2)}`)
 }
