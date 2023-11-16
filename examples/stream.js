@@ -1,4 +1,4 @@
-import runpodSdk from "../dist/index.js"
+import runpodSdk from "runpod-sdk"
 
 const { RUNPOD_API_KEY } = process.env
 if (!RUNPOD_API_KEY) {
@@ -9,16 +9,15 @@ const runpod = runpodSdk(RUNPOD_API_KEY)
 //mock endpoint which returns whatever you specify as a stream
 //with a specified delay between inputs
 const endpoint = runpod.endpoint("gwp4kx5yd3nur1")
+
 const request = {
   input: {
     mock_return: ["a", "b", "c", "d", "e", "f", "g"],
     mock_delay: 2,
   },
 }
-
 const runResp = await endpoint.run(request)
 const { id } = runResp
-
 for await (const result of endpoint.stream(id)) {
   console.log(`stream yielded ${JSON.stringify(result, null, 2)}`)
 }
@@ -26,7 +25,7 @@ for await (const result of endpoint.stream(id)) {
 // Expected output
 /*
  stream yielded {
-  "output": "a"
+  "output": "a",
 }
 stream yielded {
   "output": "b"

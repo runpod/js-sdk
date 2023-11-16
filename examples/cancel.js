@@ -14,7 +14,14 @@ const input = {
   },
 }
 const result = await endpoint.run(input)
+console.log("run resp")
 console.log(result)
 
 const { id } = result
 const cancelResp = await endpoint.cancel(id)
+console.log("cancel resp")
+console.log(cancelResp)
+
+const statusResp = await endpoint.status(id)
+console.log("status after cancellation")
+console.log(statusResp)

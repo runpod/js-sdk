@@ -6,7 +6,7 @@ if (!RUNPOD_API_KEY) {
   process.exit()
 }
 const runpod = runpodSdk(RUNPOD_API_KEY)
-const endpoint = runpod.endpoint("mock")
+const endpoint = runpod.endpoint("stable-diffusion-v2")
 const request = {
   input: {
     mock_return: "photo of a horse",
@@ -17,24 +17,24 @@ const request = {
   },
 }
 
-// console.log("\nrun")
-// const runResp = await endpoint.run(request)
-// console.log(runResp)
-// const { id: requestId } = runResp
-// console.log("\nstatus")
-// const statusResp = await endpoint.getStatus(requestId)
-// console.log(statusResp)
-// console.log("\ncancel")
-// const cancelResp = await endpoint.cancel(requestId)
-// console.log(cancelResp)
-// console.log("\nhealth")
-// const healthResp = await endpoint.getHealth()
-// console.log(healthResp)
-// console.log("\npurge queue")
-// const purgeResp = await endpoint.purgeQueue()
-// console.log(purgeResp)
-// console.log("\nafter purge")
-// console.log(await endpoint.getHealth())
+console.log("\nrun")
+const runResp = await endpoint.run(request)
+console.log(runResp)
+const { id: requestId } = runResp
+console.log("\nstatus")
+const statusResp = await endpoint.getStatus(requestId)
+console.log(statusResp)
+console.log("\ncancel")
+const cancelResp = await endpoint.cancel(requestId)
+console.log(cancelResp)
+console.log("\nhealth")
+const healthResp = await endpoint.getHealth()
+console.log(healthResp)
+console.log("\npurge queue")
+const purgeResp = await endpoint.purgeQueue()
+console.log(purgeResp)
+console.log("\nafter purge")
+console.log(await endpoint.getHealth())
 
 console.log("runSync")
 const result = await endpoint.runSync(request)

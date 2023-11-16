@@ -7,12 +7,5 @@ if (!RUNPOD_API_KEY) {
 
 const runpod = runpodSdk(RUNPOD_API_KEY)
 const endpoint = runpod.endpoint("faster-whisper")
-const input = {
-  input: {
-    audio: "https://github.com/runpod-workers/sample-inputs/raw/main/audio/gettysburg.wav",
-    model: "base",
-  },
-}
-const result = await endpoint.runSync(input)
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+const result = await endpoint.purgeQueue()
 console.log(result)
