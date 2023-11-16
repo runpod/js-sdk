@@ -104,7 +104,7 @@ export const runSync = curry(
   ) => {
     const startTime = Date.now()
     const getRemainingTime = () => clamp(1000, 90000, wait - (Date.now() - startTime))
-    const runResp: any = await runsync(baseUrl, apiKey, endpointId, request)
+    const runResp: any = await runsync(baseUrl, apiKey, endpointId, request, wait)
     let data: EndpointOutput = { ...runResp }
     const { id } = data
     const start = Date.now()
@@ -144,7 +144,7 @@ const runsync = curry(
     request: EndpointInputPayload,
     wait: number
   ) => {
-    const url = getEndpointUrl(baseUrl, endpointId) + "/runsync" + `?wait=${wait}`
+    const url = getEndpointUrl(baseUrl, endpointId) + "/runsync"
     const authHeader = getAuthHeader(apiKey)
     return handleErrorsStatus(axios.post(url, request, authHeader))
   }
