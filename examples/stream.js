@@ -10,16 +10,38 @@ const endpoint = runpod.endpoint("gwp4kx5yd3nur1")
 const request = {
   input: {
     mock_return: ["a", "b", "c", "d", "e", "f", "g"],
-    mock_delay: 5,
+    mock_delay: 2,
   },
 }
 
-console.log("\nrun")
 const runResp = await endpoint.run(request)
-console.log(runResp)
 const { id } = runResp
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-await sleep(5000)
+
 for await (const result of endpoint.stream(id)) {
   console.log(`stream yielded ${JSON.stringify(result, null, 2)}`)
 }
+
+// Expected output
+/*
+ stream yielded {
+  "output": "a"
+}
+stream yielded {
+  "output": "b"
+}
+stream yielded {
+  "output": "c"
+}
+stream yielded {
+  "output": "d"
+}
+stream yielded {
+  "output": "e"
+}
+stream yielded {
+  "output": "f"
+}
+stream yielded {
+  "output": "g"
+}
+ */

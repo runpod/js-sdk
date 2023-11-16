@@ -167,22 +167,8 @@ export const status = curry(
   }
 )
 
-//wrapper over /status
-export const stream = curry(
-  (
-    baseUrl: string,
-    apiKey: string,
-    endpointId: string,
-    requestId: string,
-    wait: number = 10000
-  ) => {
-    const url = getEndpointUrl(baseUrl, endpointId) + "/stream/" + requestId + `?wait=${wait}`
-    const authHeader = getAuthHeader(apiKey)
-    return handleErrorsStatus(axios.get(url, authHeader))
-  }
-)
 //generator yielding results of stream
-export async function* streamResults(
+export async function* stream(
   baseUrl: string,
   apiKey: string,
   endpointId: string,
@@ -196,9 +182,8 @@ export async function* streamResults(
     if (isCompleted(resp.status)) {
       completed = true
     }
-    console.log(resp)
     for (const output of resp?.stream) {
-      yield { status: resp?.status, output }
+      yield output
     }
   }
 }
@@ -246,11 +231,8 @@ class Endpoint {
   async statusSync(requestId: string, wait: number = 90000): Promise<EndpointOutput> {
     return statusSync(this.baseUrl, this.apiKey, this.endpointId, requestId, wait)
   }
-  async stream(requestId: string, wait: number = 10000): Promise<EndpointStreamOutput> {
-    return stream(this.baseUrl, this.apiKey, this.endpointId, requestId, wait)
-  }
-  streamResults(requestId: string): AsyncGenerator<any> {
-    return streamResults(this.baseUrl, this.apiKey, this.endpointId, requestId)
+  stream(requestId: string): AsyncGenerator<any> {
+    return stream(this.baseUrl, this.apiKey, this.endpointId, requestId)
   }
   async cancel(requestId: string): Promise<CancelOutput> {
     return cancel(this.baseUrl, this.apiKey, this.endpointId, requestId)
