@@ -6,6 +6,8 @@ if (!RUNPOD_API_KEY) {
   process.exit()
 }
 const runpod = runpodSdk(RUNPOD_API_KEY)
+//mock endpoint which returns whatever you specify as a stream
+//with a specified delay between inputs
 const endpoint = runpod.endpoint("gwp4kx5yd3nur1")
 const request = {
   input: {

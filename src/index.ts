@@ -64,7 +64,6 @@ const getAuthHeader = (apiKey: string) => ({
   },
 })
 const print = console.log
-const sleep = (ms: any) => new Promise((resolve: any) => setTimeout(resolve, ms))
 
 const handleErrors = async (axiosRequest: Promise<AxiosResponse>) => {
   const resp = await axiosRequest

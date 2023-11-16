@@ -13,5 +13,5 @@ const input = {
     model: "base",
   },
 }
-const result = await endpoint.runSync(input, 3000)
+const result = await endpoint.runSync(input)
 console.log(result)
