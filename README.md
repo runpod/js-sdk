@@ -32,7 +32,7 @@ const { id } = await endpoint.run({
 You can check on the status of this request once you have the id:
 
 ```js
-const status = await endpoint.getStatus(id);
+const status = await endpoint.status(id);
 ```
 
 If the request has been completed, the status object returned will contain the `output` of the request.
@@ -56,7 +56,7 @@ await endpoint.cancel(requestId);
 For long running applications or troubleshooting, you may want to check the health of the endpoint workers:
 
 ```js
-const health = await endpoint.getHealth();
+const health = await endpoint.health();
 ```
 
 Some Runpod endpoints are configured to yield multiple results for a single input, which can be streamed locally:
