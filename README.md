@@ -75,3 +75,43 @@ for await (const result of endpoint.stream(id)) {
 ```
 
 (this horse photo endpoint is fictitious, but it shows why you might want a stream of results)
+
+# Timeouts
+
+All endpoint functions have a `timeout` parameter which is the maximum amount of time, in milliseconds, to wait for the function to complete.
+
+For example,
+
+```js
+const result = await endpoint.runSync({
+  input: {
+    prompt: "a photo of a horse the size of a Boeing 787",
+  },
+}, 5000);
+```
+will timeout after 5 seconds.
+
+Note that this is the timeout on the *local* function call, not the underlying request in the queue. So this:
+
+```js
+const result = await endpoint.run({
+  input: {
+    prompt: "a photo of a horse the size of a Boeing 787",
+  },
+}, 3000);
+```
+
+will not enqueue a request which can only take 3 seconds on the server, it will only timeout if the enqueue itself is slower than 3 seconds.
+
+To affect the maximum time a request can take on the backend, you can provide a policy in the request input:
+
+```js
+const result = await endpoint.run({
+  input: {
+    prompt: "a photo of a horse the size of a Boeing 787",
+  },
+  policy: {
+    executionTimeout: 3000,
+  }
+});
+```

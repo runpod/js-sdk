@@ -56,3 +56,19 @@ const slowRequest = {
 console.log("runSync timed out")
 const timedOutResult = await endpoint.runSync(slowRequest, 3000)
 console.log(timedOutResult)
+
+console.log("\nstream")
+//mock endpoint which returns whatever you specify as a stream
+//with a specified delay between inputs
+const streamingEndpoint = runpod.endpoint("eqam4ya2iazibb")
+const streamReq = {
+  input: {
+    mock_return: ["a", "b", "c", "d", "e", "f", "g"],
+    mock_delay: 2,
+  },
+}
+const streamRunResp = await streamingEndpoint.run(streamReq)
+const { id } = streamRunResp
+for await (const result of endpoint.stream(id)) {
+  console.log(`stream yielded ${JSON.stringify(result, null, 2)}`)
+}

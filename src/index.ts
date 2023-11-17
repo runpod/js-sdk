@@ -13,6 +13,7 @@ export type S3Config = {
 export type EndpointInputPayload = {
   input: any
   webhook?: string
+  webhookV2?: string
   s3Config?: S3Config
   policy?: ExecutionPolicy
 }
@@ -129,7 +130,6 @@ const statusSync = curry(
     timeout: number = 90000
   ) => {
     const wait = clamp(1000, 90000, timeout)
-    console.log("statusSync wait", wait)
     const url = getEndpointUrl(baseUrl, endpointId) + "/status-sync/" + requestId + `?wait=${wait}`
     const authHeader = getAuthHeader(apiKey)
     return handleErrorsStatus(axios.get(url, { ...authHeader }))
@@ -146,7 +146,6 @@ const runsync = curry(
     timeout: number = 90000
   ) => {
     const wait = clamp(1000, 90000, timeout)
-    console.log("runsync wait:", wait)
     const url = getEndpointUrl(baseUrl, endpointId) + "/runsync" + `?wait=${wait}`
     const authHeader = getAuthHeader(apiKey)
     return handleErrorsStatus(axios.post(url, request, { ...authHeader }))
@@ -178,7 +177,7 @@ export const status = curry(
   ) => {
     const url = getEndpointUrl(baseUrl, endpointId) + "/status/" + requestId
     const authHeader = getAuthHeader(apiKey)
-    return handleErrorsStatus(axios.get(url, authHeader))
+    return handleErrorsStatus(axios.get(url, { ...authHeader, timeout }))
   }
 )
 
@@ -187,13 +186,19 @@ export async function* stream(
   baseUrl: string,
   apiKey: string,
   endpointId: string,
-  requestId: string
+  requestId: string,
+  timeout: number = 0
 ) {
   let completed = false
+  const start = Date.now()
   while (!completed) {
     const url = getEndpointUrl(baseUrl, endpointId) + "/stream/" + requestId
     const authHeader = getAuthHeader(apiKey)
     const resp = await handleErrors(axios.get(url, authHeader))
+    if (timeout !== 0 && Date.now() - start > timeout) {
+      print(`stream timed out after ${timeout / 1000} seconds`)
+      completed = true
+    }
     if (isCompleted(resp.status)) {
       completed = true
     }
@@ -258,8 +263,9 @@ class Endpoint {
   async statusSync(requestId: string, timeout: number = 90000): Promise<EndpointOutput> {
     return statusSync(this.baseUrl, this.apiKey, this.endpointId, requestId, timeout)
   }
-  stream(requestId: string): AsyncGenerator<any> {
-    return stream(this.baseUrl, this.apiKey, this.endpointId, requestId)
+  //default to no timeout
+  stream(requestId: string, timeout: number = 0): AsyncGenerator<any> {
+    return stream(this.baseUrl, this.apiKey, this.endpointId, requestId, timeout)
   }
   async cancel(requestId: string, timeout: number = 3000): Promise<CancelOutput> {
     return cancel(this.baseUrl, this.apiKey, this.endpointId, requestId, timeout)
