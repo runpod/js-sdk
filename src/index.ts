@@ -99,17 +99,17 @@ export const runSync = curry(
     apiKey: string,
     endpointId: string,
     request: EndpointInputPayload,
-    wait: number = 90000
+    timeout: number = 90000
   ) => {
     const startTime = Date.now()
-    const getRemainingTime = () => clamp(1000, 90000, wait - (Date.now() - startTime))
-    const runResp: any = await runsync(baseUrl, apiKey, endpointId, request, wait)
+    const getRemainingTime = () => clamp(1000, 90000, timeout - (Date.now() - startTime))
+    const runResp: any = await runsync(baseUrl, apiKey, endpointId, request, timeout)
     let data: EndpointOutput = { ...runResp }
     const { id } = data
     const start = Date.now()
     while (!isCompleted(data.status)) {
-      if (Date.now() - start > wait) {
-        print(`${id} timed out after ${wait / 1000} seconds`)
+      if (Date.now() - start > timeout) {
+        print(`${id} timed out after ${timeout / 1000} seconds`)
         return { ...data, started: true, completed: false }
       }
       data = await statusSync(baseUrl, apiKey, endpointId, id, getRemainingTime())
@@ -126,11 +126,13 @@ const statusSync = curry(
     apiKey: string,
     endpointId: string,
     requestId: String,
-    wait: number = 90000
+    timeout: number = 90000
   ) => {
+    const wait = clamp(1000, 90000, timeout)
+    console.log("statusSync wait", wait)
     const url = getEndpointUrl(baseUrl, endpointId) + "/status-sync/" + requestId + `?wait=${wait}`
     const authHeader = getAuthHeader(apiKey)
-    return handleErrorsStatus(axios.get(url, authHeader))
+    return handleErrorsStatus(axios.get(url, { ...authHeader }))
   }
 )
 
@@ -141,25 +143,39 @@ const runsync = curry(
     apiKey: string,
     endpointId: string,
     request: EndpointInputPayload,
-    wait: number
+    timeout: number = 90000
   ) => {
-    const url = getEndpointUrl(baseUrl, endpointId) + "/runsync"
+    const wait = clamp(1000, 90000, timeout)
+    console.log("runsync wait:", wait)
+    const url = getEndpointUrl(baseUrl, endpointId) + "/runsync" + `?wait=${wait}`
     const authHeader = getAuthHeader(apiKey)
-    return handleErrorsStatus(axios.post(url, request, authHeader))
+    return handleErrorsStatus(axios.post(url, request, { ...authHeader }))
   }
 )
 
 //wrapper over /run
 export const run = curry(
-  (baseUrl: string, apiKey: string, endpointId: string, request: EndpointInputPayload) => {
+  (
+    baseUrl: string,
+    apiKey: string,
+    endpointId: string,
+    request: EndpointInputPayload,
+    timeout: number = 3000
+  ) => {
     const url = getEndpointUrl(baseUrl, endpointId) + "/run"
     const authHeader = getAuthHeader(apiKey)
-    return handleErrors(axios.post(url, request, authHeader))
+    return handleErrors(axios.post(url, request, { ...authHeader, timeout }))
   }
 )
 //wrapper over /status
 export const status = curry(
-  (baseUrl: string, apiKey: string, endpointId: string, requestId: string) => {
+  (
+    baseUrl: string,
+    apiKey: string,
+    endpointId: string,
+    requestId: string,
+    timeout: number = 3000
+  ) => {
     const url = getEndpointUrl(baseUrl, endpointId) + "/status/" + requestId
     const authHeader = getAuthHeader(apiKey)
     return handleErrorsStatus(axios.get(url, authHeader))
@@ -188,23 +204,35 @@ export async function* stream(
 }
 
 //wrapper over /cancel
-const cancel = curry((baseUrl: string, apiKey: string, endpointId: string, requestId: string) => {
-  const url = getEndpointUrl(baseUrl, endpointId) + "/cancel/" + requestId
-  const authHeader = getAuthHeader(apiKey)
-  return handleErrors(axios.post(url, {}, authHeader))
-})
+const cancel = curry(
+  (
+    baseUrl: string,
+    apiKey: string,
+    endpointId: string,
+    requestId: string,
+    timeout: number = 3000
+  ) => {
+    const url = getEndpointUrl(baseUrl, endpointId) + "/cancel/" + requestId
+    const authHeader = getAuthHeader(apiKey)
+    return handleErrors(axios.post(url, {}, { ...authHeader, timeout }))
+  }
+)
 //wrapper over /health
-export const health = curry((baseUrl: string, apiKey: string, endpointId: string) => {
-  const url = getEndpointUrl(baseUrl, endpointId) + "/health"
-  const authHeader = getAuthHeader(apiKey)
-  return handleErrors(axios.get(url, authHeader))
-})
+export const health = curry(
+  (baseUrl: string, apiKey: string, endpointId: string, timeout: number = 3000) => {
+    const url = getEndpointUrl(baseUrl, endpointId) + "/health"
+    const authHeader = getAuthHeader(apiKey)
+    return handleErrors(axios.get(url, { ...authHeader, timeout }))
+  }
+)
 //wrapper over /purge-queue
-export const purgeQueue = curry((baseUrl: string, apiKey: string, endpointId: string) => {
-  const url = getEndpointUrl(baseUrl, endpointId) + "/purge-queue"
-  const authHeader = getAuthHeader(apiKey)
-  return handleErrors(axios.post(url, {}, authHeader))
-})
+export const purgeQueue = curry(
+  (baseUrl: string, apiKey: string, endpointId: string, timeout: number = 3000) => {
+    const url = getEndpointUrl(baseUrl, endpointId) + "/purge-queue"
+    const authHeader = getAuthHeader(apiKey)
+    return handleErrors(axios.post(url, {}, { ...authHeader, timeout }))
+  }
+)
 
 class Endpoint {
   endpointId: string = ""
@@ -217,30 +245,30 @@ class Endpoint {
   }
   async runSync(
     request: EndpointInputPayload,
-    wait: number = 90000
+    timeout: number = 90000
   ): Promise<EndpointCompletedOutput> {
-    return runSync(this.baseUrl, this.apiKey, this.endpointId, request, wait)
+    return runSync(this.baseUrl, this.apiKey, this.endpointId, request, timeout)
   }
-  async run(request: EndpointInputPayload): Promise<string> {
-    return run(this.baseUrl, this.apiKey, this.endpointId, request)
+  async run(request: EndpointInputPayload, timeout: number = 3000): Promise<string> {
+    return run(this.baseUrl, this.apiKey, this.endpointId, request, timeout)
   }
-  async status(requestId: string): Promise<EndpointOutput> {
-    return status(this.baseUrl, this.apiKey, this.endpointId, requestId)
+  async status(requestId: string, timeout: number = 3000): Promise<EndpointOutput> {
+    return status(this.baseUrl, this.apiKey, this.endpointId, requestId, timeout)
   }
-  async statusSync(requestId: string, wait: number = 90000): Promise<EndpointOutput> {
-    return statusSync(this.baseUrl, this.apiKey, this.endpointId, requestId, wait)
+  async statusSync(requestId: string, timeout: number = 90000): Promise<EndpointOutput> {
+    return statusSync(this.baseUrl, this.apiKey, this.endpointId, requestId, timeout)
   }
   stream(requestId: string): AsyncGenerator<any> {
     return stream(this.baseUrl, this.apiKey, this.endpointId, requestId)
   }
-  async cancel(requestId: string): Promise<CancelOutput> {
-    return cancel(this.baseUrl, this.apiKey, this.endpointId, requestId)
+  async cancel(requestId: string, timeout: number = 3000): Promise<CancelOutput> {
+    return cancel(this.baseUrl, this.apiKey, this.endpointId, requestId, timeout)
   }
-  async health(): Promise<HealthCheck> {
-    return health(this.baseUrl, this.apiKey, this.endpointId)
+  async health(timeout: number = 3000): Promise<HealthCheck> {
+    return health(this.baseUrl, this.apiKey, this.endpointId, timeout)
   }
-  async purgeQueue(): Promise<PurgeQueueOutput> {
-    return purgeQueue(this.baseUrl, this.apiKey, this.endpointId)
+  async purgeQueue(timeout: number = 3000): Promise<PurgeQueueOutput> {
+    return purgeQueue(this.baseUrl, this.apiKey, this.endpointId, timeout)
   }
 }
 

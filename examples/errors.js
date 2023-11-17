@@ -7,5 +7,5 @@ if (!RUNPOD_API_KEY || !ENDPOINT_ID) {
 
 const runpod = runpodSdk(RUNPOD_API_KEY)
 const endpoint = runpod.endpoint(ENDPOINT_ID)
-const result = await endpoint.purgeQueue()
+const result = await endpoint.health()
 console.log(result)

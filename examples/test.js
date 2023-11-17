@@ -1,19 +1,16 @@
 import runpodSdk from "../dist/index.js"
 
-const { RUNPOD_API_KEY } = process.env
-if (!RUNPOD_API_KEY) {
-  console.log("please supply RUNPOD_API_KEY as an environment variable")
+const { RUNPOD_API_KEY, ENDPOINT_ID } = process.env
+if (!RUNPOD_API_KEY || !ENDPOINT_ID) {
+  console.log("please supply RUNPOD_API_KEY and ENDPOINT_ID as an environment variable")
   process.exit()
 }
 const runpod = runpodSdk(RUNPOD_API_KEY)
-const endpoint = runpod.endpoint("stable-diffusion-v2")
+const endpoint = runpod.endpoint(ENDPOINT_ID)
+
 const request = {
   input: {
-    mock_return: "photo of a horse",
-    mock_delay: 20,
-  },
-  policy: {
-    executionTimeout: 10 * 1000,
+    prompt: "photo of a horse",
   },
 }
 
@@ -22,20 +19,40 @@ const runResp = await endpoint.run(request)
 console.log(runResp)
 const { id: requestId } = runResp
 console.log("\nstatus")
-const statusResp = await endpoint.getStatus(requestId)
+const statusResp = await endpoint.status(requestId)
 console.log(statusResp)
 console.log("\ncancel")
 const cancelResp = await endpoint.cancel(requestId)
 console.log(cancelResp)
 console.log("\nhealth")
-const healthResp = await endpoint.getHealth()
+const healthResp = await endpoint.health()
 console.log(healthResp)
 console.log("\npurge queue")
 const purgeResp = await endpoint.purgeQueue()
 console.log(purgeResp)
 console.log("\nafter purge")
-console.log(await endpoint.getHealth())
+console.log(await endpoint.health())
 
 console.log("runSync")
 const result = await endpoint.runSync(request)
 console.log(result)
+
+const failingRequest = {
+  input: {
+    bogus_key: "photo of a horse",
+  },
+}
+console.log("runSync failing")
+const failingResult = await endpoint.runSync(failingRequest)
+console.log(failingResult)
+
+const slowRequest = {
+  input: {
+    prompt: "photo of a horse",
+    num_inference_steps: 200,
+  },
+}
+
+console.log("runSync timed out")
+const timedOutResult = await endpoint.runSync(slowRequest, 3000)
+console.log(timedOutResult)
