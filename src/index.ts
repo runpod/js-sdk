@@ -9,6 +9,7 @@ export type S3Config = {
   accessSecret: string
   bucketName: string
   endpointUrl: string
+  objectPath?: string
 }
 export type EndpointInputPayload = {
   input: any
