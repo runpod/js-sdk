@@ -1,5 +1,7 @@
 import axios, { AxiosResponse } from "axios"
 import { curry, clamp, isNil } from "ramda"
+import pkg from "../package.json"
+
 export type ExecutionPolicy = {
   ttl?: number
   executionTimeout?: number
@@ -59,10 +61,23 @@ export type SdkOptions = {
   baseUrl: string
 }
 
+function getUserAgent() {
+  const sdkVersion = pkg.version;
+
+  let environmentInfo = 'Unknown Environment';
+
+  if (typeof window !== 'undefined' && window.navigator) {
+    environmentInfo = `Browser/${window.navigator.userAgent}`;
+  }
+
+  return `RunPod-JS-SDK/${sdkVersion} (${environmentInfo})`;
+}
+
 const getAuthHeader = (apiKey: string) => ({
   headers: {
     "Authorization": `Bearer ${apiKey}`,
-    "content-type": "application/json",
+        "content-type": "application/json",
+        "User-Agent": getUserAgent()
   },
 })
 const print = console.log
