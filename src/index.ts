@@ -255,7 +255,10 @@ class Endpoint {
   ): Promise<EndpointCompletedOutput> {
     return runSync(this.baseUrl, this.apiKey, this.endpointId, request, timeout)
   }
-  async run(request: EndpointInputPayload, timeout: number = 3000): Promise<string> {
+  async run(
+    request: EndpointInputPayload,
+    timeout: number = 3000
+  ): Promise<EndpointIncompleteOutput> {
     return run(this.baseUrl, this.apiKey, this.endpointId, request, timeout)
   }
   async status(requestId: string, timeout: number = 3000): Promise<EndpointOutput> {
