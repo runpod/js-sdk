@@ -60,7 +60,7 @@ console.log(timedOutResult)
 console.log("\nstream")
 //mock endpoint which returns whatever you specify as a stream
 //with a specified delay between inputs
-const streamingEndpoint = runpod.endpoint("eqam4ya2iazibb")
+const streamingEndpoint = runpod.endpoint("gwp4kx5yd3nur1")
 const streamReq = {
   input: {
     mock_return: ["a", "b", "c", "d", "e", "f", "g"],
