@@ -5,8 +5,9 @@ import pkg from "../package.json"
 const axios = xior.create();
 
 export type ExecutionPolicy = {
-  ttl?: number
   executionTimeout?: number
+  lowPriority?: boolean
+  ttl?: number
 }
 export type S3Config = {
   accessId: string
