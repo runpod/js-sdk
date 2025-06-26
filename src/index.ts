@@ -1,6 +1,5 @@
 import xior, { XiorResponse as AxiosResponse } from "xior"
 import { curry, clamp, isNil } from "ramda"
-import pkg from "../package.json"
 
 const axios = xior.create();
 
@@ -65,7 +64,7 @@ export type SdkOptions = {
 }
 
 function getUserAgent() {
-  const sdkVersion = pkg.version;
+  const sdkVersion = "1.1.2";
 
   let environmentInfo = 'Unknown Environment';
 
