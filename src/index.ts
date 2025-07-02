@@ -1,6 +1,6 @@
 import xior, { XiorResponse as AxiosResponse } from "xior"
 import { curry, clamp, isNil } from "ramda"
-import pkg from "../package.json"
+import pkg from "../package.json" assert { type: "json" }
 
 const axios = xior.create();
 

@@ -1,6 +1,6 @@
 {
   "name": "runpod-sdk",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "JavaScript SDK for Runpod",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -16,6 +16,6 @@
     "typescript": "^5.2.2"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc && node -e \"const fs=require('fs'),path=require('path');function processFile(p){if(!p.endsWith('.js'))return;let c=fs.readFileSync(p,'utf8');let u=c.replace(/assert\\s*{\\s*type:\\s*[\\\"']json[\\\"']\\s*}/g,'with { type: \\\"json\\\" }');if(c!==u){fs.writeFileSync(p,u,'utf8');console.log('Updated:',path.relative('.',p));}}function processDir(d){fs.readdirSync(d,{withFileTypes:true}).forEach(e=>{const p=path.join(d,e.name);e.isDirectory()?processDir(p):processFile(p);})}const distPath='./dist';if(fs.existsSync(distPath)){console.log('Processing import assertions...');processDir(distPath);console.log('Done.');}else{console.warn('Dist not found');}\""
   }
 }
