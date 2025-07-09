@@ -1,16 +1,17 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "module": "ES6",
+    "target": "ES2020",
+    "module": "ES2020",
     "outDir": "./dist",
     "rootDir": ".",
     "moduleResolution": "node",
-    "lib": ["ES2022", "DOM"],
+    "lib": ["ES2020", "DOM"],
     "strict": true,
     "esModuleInterop": true,
     "declaration": true,
     "sourceMap": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "types": ["node"]
   },
   "include": ["src/**/*.ts"]
 }
