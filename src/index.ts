@@ -1,6 +1,9 @@
 import xior, { XiorResponse as AxiosResponse } from "xior"
 import { curry, clamp, isNil } from "ramda"
-import pkg from "../package.json"
+import { createRequire } from "module"
+
+const require = createRequire(import.meta.url)
+const pkg = require("../../package.json")
 
 const axios = xior.create();
 
