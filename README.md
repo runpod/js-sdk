@@ -1,6 +1,17 @@
 # js-sdk
 
+[![npm version](https://img.shields.io/npm/v/runpod-sdk.svg)](https://www.npmjs.com/package/runpod-sdk)
+
 JavaScript client sdk for runpod
+
+# Installation
+
+`npm install runpod-sdk`
+
+Or for Yarn:
+
+`yarn add runpod-sdk`
+
 
 # Example Usage
 
