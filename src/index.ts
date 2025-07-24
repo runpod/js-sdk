@@ -1,6 +1,8 @@
 import xior, { XiorResponse as AxiosResponse } from "xior"
 import { curry, clamp, isNil } from "ramda"
 import { createRequire } from 'module'
+import { Pod, PodOptions } from "./Pod"
+
 const require = createRequire(import.meta.url)
 const pkg = require('../../package.json')
 
@@ -110,7 +112,7 @@ const handleErrorsStatus = async (axiosRequest: Promise<AxiosResponse>) => {
 }
 export const runpodServerlessBaseUrlProd = "https://api.runpod.ai/v2"
 export const runpodServerlessBaseUrlDev = "https://dev-api.runpod.ai/v2"
-const getEndpointUrl = curry((baseUrl, endpointId: string) => `${baseUrl}/${endpointId}`)
+const getEndpointUrl = curry((baseUrl: string, endpointId: string) => `${baseUrl}/${endpointId}`)
 const isCompleted = (status: string) =>
   ["COMPLETED", "FAILED", "CANCELLED", "TIMED_OUT"].includes(status)
 
@@ -305,6 +307,7 @@ class Endpoint {
 const defaultSdkOptions = {
   baseUrl: runpodServerlessBaseUrlProd,
 }
+
 class RunpodSdk {
   private apiKey: string = ""
   baseUrl: string = runpodServerlessBaseUrlProd
@@ -316,6 +319,7 @@ class RunpodSdk {
     this.apiKey = apiKey
     this.baseUrl = options.baseUrl ?? this.baseUrl
   }
+  
   endpoint(endpointId: string) {
     if (isNil(endpointId)) {
       print("Endpoint id not supplied")
@@ -323,8 +327,18 @@ class RunpodSdk {
     }
     return new Endpoint(this.baseUrl, this.apiKey, endpointId)
   }
-  //pod...
+
+  pod(options: PodOptions) {
+    if (isNil(options)) {
+      print("Pod options not supplied")
+      return null
+    }
+    return new Pod(options, this.apiKey, this.baseUrl)
+  }
+
+
   //template...
 }
+
 export default (apiKey: string, options: SdkOptions = defaultSdkOptions) =>
   new RunpodSdk(apiKey, options)
