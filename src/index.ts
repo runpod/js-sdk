@@ -1,8 +1,16 @@
 import xior, { XiorResponse as AxiosResponse } from "xior"
 import { curry, clamp, isNil } from "ramda"
-import { createRequire } from 'module'
-const require = createRequire(import.meta.url)
-const pkg = require('../../package.json')
+
+// The SDK's own version, reported in the User-Agent header below.
+//
+// Intentionally a literal rather than read from package.json at runtime. Reading
+// it at runtime needs either an ESM JSON import (which requires an import
+// attribute on Node 17.5+) or `createRequire`, which needs Node's `module`
+// builtin and a file:// URL. Neither exists in Cloudflare Workers, Deno or a
+// browser, so either approach makes the SDK unimportable there (#20).
+//
+// Bump alongside `version` in package.json on release — see README-dev.md.
+const SDK_VERSION = "1.1.2"
 
 const axios = xior.create();
 
@@ -67,15 +75,13 @@ export type SdkOptions = {
 }
 
 function getUserAgent() {
-  const sdkVersion = pkg.version;
-
   let environmentInfo = 'Unknown Environment';
 
   if (typeof window !== 'undefined' && window.navigator) {
     environmentInfo = `Browser/${window.navigator.userAgent}`;
   }
 
-  return `RunPod-JS-SDK/${sdkVersion} (${environmentInfo})`;
+  return `RunPod-JS-SDK/${SDK_VERSION} (${environmentInfo})`;
 }
 
 const getAuthHeader = (apiKey: string) => ({
