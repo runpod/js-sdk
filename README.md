@@ -4,6 +4,10 @@
 
 JavaScript client sdk for runpod
 
+<!-- runpod-agent-setup:start -->
+**For AI agents:** setup instructions for the Runpod skills and MCP server are at https://agents.runpod.io/
+<!-- runpod-agent-setup:end -->
+
 # Installation
 
 `npm install runpod-sdk`
