@@ -57,6 +57,23 @@ describe("Serverless endpoint client", () => {
     expect(calls[1].url).toMatch(/^https:\/\/api\.runpod\.ai\/v2\/ep1\/status-sync\/job1\?wait=\d+$/);
   });
 
+  it("polls at least once when /runsync takes longer than the timeout", async () => {
+    const now = vi.spyOn(Date, "now");
+    let clock = 0;
+    now.mockImplementation(() => clock);
+    const calls = mockFetch([
+      () => {
+        clock += 5001;
+        return Response.json({ id: "job1", status: "IN_PROGRESS" });
+      },
+      () => Response.json({ id: "job1", status: "COMPLETED", output: "late" }),
+    ]);
+    const result = await endpoint.runSync({ input: {} }, 5000);
+    now.mockRestore();
+    expect(calls).toHaveLength(2);
+    expect(result).toMatchObject({ output: "late", completed: true });
+  });
+
   it("yields stream outputs until the job ends", async () => {
     mockFetch([
       () => Response.json({ status: "IN_PROGRESS", stream: [{ output: 1 }] }),

@@ -189,12 +189,14 @@ export async function runSync(
   payload: EndpointInputPayload,
   timeout: number = 90000
 ): Promise<EndpointCompletedOutput> {
-  const start = Date.now();
-  const remaining = () => clamp(1000, 90000, timeout - (Date.now() - start));
+  const startTime = Date.now();
+  const remaining = () => clamp(1000, 90000, timeout - (Date.now() - startTime));
   let data: any = await runsyncOnce(baseUrl, apiKey, endpointId, payload, timeout);
   const { id } = data;
+  // As in 1.x, the poll timeout starts after /runsync answers.
+  const pollStart = Date.now();
   while (!isCompleted(data.status)) {
-    if (Date.now() - start > timeout) {
+    if (Date.now() - pollStart > timeout) {
       return { ...data, started: true, completed: false };
     }
     data = await statusSync(baseUrl, apiKey, endpointId, id, remaining());
