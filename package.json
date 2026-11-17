@@ -1,0 +1,25 @@
+{
+  "name": "runpod-js-sdk-workspace",
+  "private": true,
+  "description": "Workspace for runpod-sdk and @runpod/typescript-api-sdk",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=10"
+  },
+  "scripts": {
+    "build": "pnpm -r run build",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r run test",
+    "check": "pnpm --filter @runpod/typescript-api-sdk run check && pnpm --filter runpod-sdk run check",
+    "spec:check": "pnpm --filter @runpod/typescript-api-sdk run spec:check",
+    "spec:pull": "pnpm --filter @runpod/typescript-api-sdk run spec:pull",
+    "generate": "pnpm --filter @runpod/typescript-api-sdk run generate",
+    "changeset": "changeset",
+    "changeset:version": "changeset version",
+    "changeset:publish": "changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.29.6"
+  }
+}
