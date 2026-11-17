@@ -1,4 +1,4 @@
-import runpodSdk from "../dist/index.js"
+import runpodSdk from "runpod-sdk"
 
 const { RUNPOD_API_KEY, ENDPOINT_ID } = process.env
 if (!RUNPOD_API_KEY || !ENDPOINT_ID) {
