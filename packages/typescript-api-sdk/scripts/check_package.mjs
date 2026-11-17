@@ -70,7 +70,9 @@ void [pod, invalidPod, invalidTemplate, partialTemplate, image];
   const files = run("tar", ["-tzf", tarball]).trim().split("\n");
   assert(files.some(file => file === "package/dist/index.cjs"));
   assert(files.some(file => file === "package/dist/index.d.cts"));
-  assert(files.every(file => /^package\/(dist\/|package\.json$|README\.md$|LICENSE$|THIRD_PARTY_NOTICES\.txt$)/.test(file)), files.join("\n"));
+  // runpod-mcp generates its tools from the shipped spec.
+  assert(files.some(file => file === "package/spec/openapi.yaml"));
+  assert(files.every(file => /^package\/(dist\/|spec\/openapi\.yaml$|package\.json$|README\.md$|LICENSE$|THIRD_PARTY_NOTICES\.txt$)/.test(file)), files.join("\n"));
   console.log("Packed ESM/CJS runtime calls, NodeNext declarations, and package contents passed.");
 } catch (error) {
   if (error.stdout) console.error(String(error.stdout));

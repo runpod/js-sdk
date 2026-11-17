@@ -29,10 +29,13 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
-    }
+    },
+    "./spec/openapi.yaml": "./spec/openapi.yaml",
+    "./package.json": "./package.json"
   },
   "files": [
     "dist",
+    "spec/openapi.yaml",
     "THIRD_PARTY_NOTICES.txt"
   ],
   "engines": {
@@ -51,7 +54,8 @@
     "prepack": "npm run build",
     "test:package": "node scripts/check_package.mjs",
     "test:examples": "node --test scripts/test_examples.mjs",
-    "prepare": "tsup"
+    "prepare": "tsup",
+    "check": "pnpm run generate:check && pnpm run test:spec && pnpm run test:scripts && pnpm run typecheck && pnpm run test && pnpm run test:package && pnpm run test:examples"
   },
   "dependencies": {
     "openapi-fetch": "^0.17.0",
@@ -66,7 +70,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/runpod/runpod-mcp.git",
+    "url": "git+https://github.com/runpod/js-sdk.git",
     "directory": "packages/typescript-api-sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/runpod/js-sdk/issues"
   }
 }

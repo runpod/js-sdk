@@ -11,7 +11,8 @@ and billing.
 [MCP server](https://github.com/runpod/runpod-mcp)
 
 Supports **Node.js 20+**, ESM, and CommonJS. For Serverless job submission and
-results, use the existing [runpod-sdk](https://github.com/runpod/js-sdk).
+results as well, use [`runpod-sdk`](https://www.npmjs.com/package/runpod-sdk). It
+includes everything in this package plus the Serverless job client.
 
 <!-- runpod-agent-setup:start -->
 **For AI agents:** setup instructions for the Runpod skills and MCP server are at https://agents.runpod.io/
@@ -60,14 +61,14 @@ required; Python and the source build tools are not needed to use the npm packag
 ## Build from source
 
 The SDK's source lives in the
-[runpod-mcp repository](https://github.com/runpod/runpod-mcp) at
+[js-sdk repository](https://github.com/runpod/js-sdk) at
 `packages/typescript-api-sdk/`. To build it, install **Node.js 20+** and
 **pnpm 10**. Python is only needed when regenerating types or running the spec
 tests.
 
 ```bash
-git clone https://github.com/runpod/runpod-mcp.git
-cd runpod-mcp
+git clone https://github.com/runpod/js-sdk.git
+cd js-sdk
 pnpm install --frozen-lockfile    # also builds this package
 cd packages/typescript-api-sdk
 cp .env.example .env

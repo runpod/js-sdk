@@ -32,38 +32,32 @@ correction can break existing consumers even when the server behavior has not
 changed. Enum and union changes also need compatibility review; do not assign a
 patch simply because the change came from generation.
 
-During 0.x development, select **minor** for breaking changes and new features,
-and **patch** for compatible fixes. Document breaking changes and migration steps
-in the changeset. Select **major** only for the deliberate transition to 1.0.0.
-After 1.0.0, follow the table above. Prerelease publishing requires a separate
+Document breaking changes and migration steps in the changeset. A major bump
+also moves `runpod-sdk`, because both packages share one version. Prerelease publishing requires a separate
 reviewed change to select a version suffix and a non-`latest` npm tag.
 
 ## Release flow
 
-The SDK is released from the
-[runpod-mcp repository](https://github.com/runpod/runpod-mcp), alongside
-`@runpod/mcp-server`, by that repository's **Release** workflow
-(`.github/workflows/release.yml`). On every push to `main`, Changesets opens or
-updates one "Version Packages" PR covering every package with pending
-changesets. Merging that PR runs `changeset publish`, which publishes each
-workspace package whose version is not yet on npm and tags it
-`<package>@<version>` (for example `@runpod/typescript-api-sdk@0.4.0`). Tags
-from before the move are plain `v<version>`, in the archived
-`runpod/typescript-api-sdk` repository.
+This package and `runpod-sdk` release from the
+[js-sdk repository](https://github.com/runpod/js-sdk) through its **Release**
+workflow (`.github/workflows/release.yml`). They are a Changesets fixed group,
+so they always release together at the same version. On every push to `main`,
+Changesets opens or updates one "Version Packages" PR. Merging that PR runs
+`changeset publish`, which publishes each package whose version is not yet on
+npm and tags it `<package>@<version>` (for example
+`@runpod/typescript-api-sdk@2.0.0`). Releases up to 0.7.0 were published from
+[runpod-mcp](https://github.com/runpod/runpod-mcp). Tags from before that move
+are plain `v<version>`, in the archived `runpod/typescript-api-sdk` repository.
 
 Publishing authenticates with npm trusted publishing (OIDC) through
-`pnpm publish`. The SDK package therefore needs `runpod/runpod-mcp`,
-workflow `release.yml`, as its trusted publisher on npmjs.com; see
+`pnpm publish`. Each package needs `runpod/js-sdk`, workflow `release.yml`, as
+its trusted publisher on npmjs.com; see
 [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/).
-
-The MCP bundles this package into its own build, so an SDK change reaches the
-MCP without an SDK release. Release the SDK when its npm consumers need the
-change.
 
 ## Generated spec updates
 
-The runpod-mcp **Production spec update** workflow pulls the production spec
-daily, regenerates this package's `src/generated/schema.ts` and the MCP tools,
-and opens one PR on `automation/production-spec`. When the spec changed, that
-PR carries a changeset with a minor bump for both packages. Edit it before
-merging if the SDK change needs a different bump (see the table above).
+The **Production spec update** workflow pulls the production spec daily,
+regenerates `src/generated/schema.ts`, and opens one PR on
+`automation/production-spec`. When the spec changed, that PR carries a
+changeset with a minor bump. Edit it before merging if the change needs a
+different bump (see the table above).
