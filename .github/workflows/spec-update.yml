@@ -3,8 +3,8 @@
 #
 # It re-vendors packages/typescript-api-sdk/spec/openapi.yaml from production
 # through the SDK's patch layer, regenerates the SDK schema
-# (packages/typescript-api-sdk/src/generated/schema.ts), validates the
-# package, and opens or updates one PR on automation/production-spec. When
+# (packages/typescript-api-sdk/src/generated/schema.ts), validates both
+# packages, and opens or updates one PR on automation/production-spec. When
 # validation fails, the PR still opens, as a draft, so the fix can be pushed
 # onto the branch.
 #
@@ -77,6 +77,7 @@ jobs:
         env:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
+          # runpod-sdk is in the same fixed group and releases with it.
           {
             printf -- "---\n'@runpod/typescript-api-sdk': minor\n---\n\n"
             printf 'Resync the vendored v2 OpenAPI spec with production as of %s and regenerate the SDK schema.\n' "$(date -u +%Y-%m-%d)"
@@ -201,7 +202,7 @@ jobs:
 
             If validation failed, read the run log and push the fix onto this branch.
 
-            The changeset is a minor bump. Edit it to describe the user-facing changes before merging. CI is dispatched on this branch because PRs opened by the Actions token do not trigger it.
+            The changeset is a minor bump. `runpod-sdk` releases with it at the same version. Edit it to describe the user-facing changes before merging. CI is dispatched on this branch because PRs opened by the Actions token do not trigger it.
 
             The workflow runs daily. While this branch has only bot commits, each run regenerates it from main. Once a person edits it, runs leave it alone and comment when production moves again. Updates resume after the PR merges.
       - name: Sync draft state with validation

@@ -1,8 +1,13 @@
-# js-sdk
+# runpod-sdk
 
 [![npm version](https://img.shields.io/npm/v/runpod-sdk.svg)](https://www.npmjs.com/package/runpod-sdk)
 
-JavaScript client sdk for runpod
+JavaScript and TypeScript SDK for Runpod. It has two parts:
+
+- The Serverless job client: `run`, `runSync`, `status`, `stream`, `cancel`, `health`, and `purgeQueue` on an endpoint.
+- The typed REST v2 client from [`@runpod/typescript-api-sdk`](https://www.npmjs.com/package/@runpod/typescript-api-sdk), for pods, Serverless endpoints, templates, network volumes, and more.
+
+Supports **Node.js 20+**, ESM, and CommonJS.
 
 <!-- runpod-agent-setup:start -->
 **For AI agents:** setup instructions for the Runpod skills and MCP server are at https://agents.runpod.io/
@@ -15,7 +20,6 @@ JavaScript client sdk for runpod
 Or for Yarn:
 
 `yarn add runpod-sdk`
-
 
 # Example Usage
 
@@ -31,6 +35,25 @@ const result = await endpoint.runSync({
   },
 });
 ```
+
+# Using the REST v2 API
+
+`runpod.api` is a typed client for the [Runpod REST v2 API](https://api.runpod.io/v2/docs). Paths, parameters, and responses are typed from the OpenAPI spec.
+
+```js
+const { data: pods, error } = await runpod.api.GET("/v2/pods");
+```
+
+See the [`@runpod/typescript-api-sdk` README](../typescript-api-sdk/README.md) for retries, timeouts, rate limits, and log streams. Everything that package exports is also exported from `runpod-sdk`.
+
+# Upgrading from 1.x
+
+The `endpoint(id)` methods keep their 1.x names and arguments. Other changes in 2.0.0:
+
+- Node.js 20 or later is required.
+- An HTTP error throws `RunpodServerlessError`, with `status`, `statusText`, and `body`.
+- The exported `run`, `runSync`, `status`, `stream`, `health`, and `purgeQueue` functions are no longer curried. Call them with all arguments.
+- `runSync` no longer logs each poll to the console.
 
 # Using Endpoints
 
