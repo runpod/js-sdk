@@ -48,8 +48,7 @@ jobs:
       # is not on npm yet. runpod-sdk is ignored by changesets, and its 1.1.2
       # is already on npm, so it is not published. The package needs this
       # repository and release.yml configured as its trusted publisher on
-      # npmjs.com. Tags are
-      # <package>@<version>.
+      # npmjs.com. Tags are <package>@<version>.
       - name: Create Release Pull Request or Publish to npm (OIDC)
         id: changesets
         uses: changesets/action@v1
