@@ -4,7 +4,7 @@ This package lives in the
 [js-sdk repository](https://github.com/runpod/js-sdk) at
 `packages/typescript-api-sdk/`, as a pnpm workspace package. Install from the
 repository root with Node 20+ and pnpm 10; installing also builds this package
-(its `prepare` script), because `runpod-sdk` imports it. Python 3.11 is needed
+(its `prepare` script). Python 3.11 is needed
 for the spec scripts, with its dependency pinned in `scripts/requirements.txt`.
 
 ```bash
@@ -12,7 +12,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r packages/typescript-api-sdk/scripts/requirements.txt
 pnpm install --frozen-lockfile    # from the repository root
-pnpm check                        # both packages' checks, from the root
+pnpm check                        # this package's checks, from the root
 ```
 
 Or run them one at a time from `packages/typescript-api-sdk/`:
@@ -53,7 +53,7 @@ check rather than claiming the contract is current.
 
 The **Production spec update** workflow runs daily at about 09:23 UTC and can be
 dispatched manually. It pulls the production spec, regenerates this package's
-types, runs both packages' checks, and opens or updates one PR on
+types, runs the package checks, and opens or updates one PR on
 `automation/production-spec`. No changes means no new PR.
 
 `scripts/fix_spec.py` is the reviewed patch layer: auth response declarations,

@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write # Required for npm trusted publishing (OIDC)
+
+jobs:
+  release:
+    name: Release
+    # npm trusted publishing rejects self-hosted runners, which includes
+    # Blacksmith. This GitHub-hosted runner has static, allow-listed IPs.
+    runs-on: runpod-4vCPU-ubuntu-2404
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      # `changeset publish` detects the pnpm lockfile and runs `pnpm publish`,
+      # so pnpm carries the OIDC trusted-publishing exchange to npm. pnpm 11
+      # regressed that flow (pnpm/pnpm#11513). Keep pnpm 10 until a release on
+      # pnpm 11 is confirmed to authenticate.
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build @runpod/typescript-api-sdk
+        run: pnpm --filter @runpod/typescript-api-sdk run build
+
+      # Opens or updates the "Version Packages" PR from pending changesets.
+      # Merging that PR publishes @runpod/typescript-api-sdk when its version
+      # is not on npm yet. runpod-sdk is ignored by changesets, and its 1.1.2
+      # is already on npm, so it is not published. The package needs this
+      # repository and release.yml configured as its trusted publisher on
+      # npmjs.com. Tags are
+      # <package>@<version>.
+      - name: Create Release Pull Request or Publish to npm (OIDC)
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          publish: pnpm changeset:publish
+          version: pnpm changeset:version
+          commit: 'chore: version packages'
+          title: 'chore: version packages'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_ACCESS: public

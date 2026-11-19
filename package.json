@@ -11,7 +11,7 @@
     "build": "pnpm -r run build",
     "typecheck": "pnpm -r run typecheck",
     "test": "pnpm -r run test",
-    "check": "pnpm --filter @runpod/typescript-api-sdk run check && pnpm --filter runpod-sdk run check",
+    "check": "pnpm --filter @runpod/typescript-api-sdk run check",
     "spec:check": "pnpm --filter @runpod/typescript-api-sdk run spec:check",
     "spec:pull": "pnpm --filter @runpod/typescript-api-sdk run spec:pull",
     "generate": "pnpm --filter @runpod/typescript-api-sdk run generate",

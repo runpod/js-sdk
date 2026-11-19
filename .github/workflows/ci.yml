@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # The spec update workflow dispatches CI on its PR branch. PRs opened by the
+  # Actions token do not trigger pull_request runs.
+  workflow_dispatch:
+    inputs:
+      update_pr_head_sha:
+        description: Head commit of the automated spec update PR
+        required: false
+        type: string
+
+jobs:
+  check:
+    # The runpod org IP allow list blocks GitHub-hosted runners.
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # The package declares Node 20+ in engines.
+        node-version: [20, 22, 24]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
+
+      # The spec patch layer (packages/typescript-api-sdk/scripts/fix_spec.py)
+      # and its tests are Python.
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Installing also builds @runpod/typescript-api-sdk (its `prepare`
+      # script).
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install the spec patch layer's Python dependencies
+        run: python -m pip install -r packages/typescript-api-sdk/scripts/requirements.txt
+
+      # @runpod/typescript-api-sdk: generated schema freshness, patch layer,
+      # query contract, typecheck, unit tests, packed-package contents, and
+      # examples.
+      - name: Check @runpod/typescript-api-sdk
+        run: pnpm check
+
+  report-spec-update:
+    # A workflow_dispatch job's own checks are not attached to the PR. Publish
+    # the matrix result as a commit status on the PR head instead.
+    if: always() && github.event_name == 'workflow_dispatch' && inputs.update_pr_head_sha != ''
+    needs: [check]
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    permissions:
+      statuses: write
+    steps:
+      - name: Report CI on the spec update PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ inputs.update_pr_head_sha }}
+          MATRIX_RESULT: ${{ needs.check.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ "$MATRIX_RESULT" = success ]; then
+            state=success
+          else
+            state=failure
+          fi
+          gh api "repos/$GH_REPO/statuses/$HEAD_SHA" \
+            -f state="$state" \
+            -f context=automation/spec-update-ci \
+            -f description="CI matrix: $MATRIX_RESULT" \
+            -f target_url="$RUN_URL" >/dev/null

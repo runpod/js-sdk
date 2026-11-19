@@ -1,26 +1,13 @@
 # Runpod JavaScript and TypeScript SDKs
 
-This repository publishes two npm packages. They release together, always at the same version.
-
 | Package | Contents |
 | --- | --- |
-| [`runpod-sdk`](packages/runpod-sdk) | The Serverless job client (`run`, `runSync`, `status`, `stream`, and more) plus everything in `@runpod/typescript-api-sdk`. Start here. |
-| [`@runpod/typescript-api-sdk`](packages/typescript-api-sdk) | The typed client for the [Runpod REST v2 API](https://api.runpod.io/v2/docs), generated from its OpenAPI spec. |
+| [`runpod-sdk`](packages/runpod-sdk) | The Serverless job client (`run`, `runSync`, `status`, `stream`, and more). |
+| [`@runpod/typescript-api-sdk`](packages/typescript-api-sdk) | The typed client for the [Runpod REST v2 API](https://api.runpod.io/v2/docs), generated from its OpenAPI spec. Releases from this repository. |
 
 ```bash
-npm install runpod-sdk
-```
-
-```js
-import runpodSdk from "runpod-sdk";
-
-const runpod = runpodSdk(process.env.RUNPOD_API_KEY);
-
-// Serverless jobs
-const result = await runpod.endpoint(process.env.ENDPOINT_ID).runSync({ input: { prompt: "hello" } });
-
-// REST v2
-const { data: pods } = await runpod.api.GET("/v2/pods");
+npm install runpod-sdk                  # Serverless jobs
+npm install @runpod/typescript-api-sdk  # REST v2
 ```
 
 <!-- runpod-agent-setup:start -->

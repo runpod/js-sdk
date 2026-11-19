@@ -32,25 +32,23 @@ correction can break existing consumers even when the server behavior has not
 changed. Enum and union changes also need compatibility review; do not assign a
 patch simply because the change came from generation.
 
-Document breaking changes and migration steps in the changeset. A major bump
-also moves `runpod-sdk`, because both packages share one version. Prerelease publishing requires a separate
+Document breaking changes and migration steps in the changeset. Prerelease publishing requires a separate
 reviewed change to select a version suffix and a non-`latest` npm tag.
 
 ## Release flow
 
-This package and `runpod-sdk` release from the
+This package releases from the
 [js-sdk repository](https://github.com/runpod/js-sdk) through its **Release**
-workflow (`.github/workflows/release.yml`). They are a Changesets fixed group,
-so they always release together at the same version. On every push to `main`,
+workflow (`.github/workflows/release.yml`). On every push to `main`,
 Changesets opens or updates one "Version Packages" PR. Merging that PR runs
 `changeset publish`, which publishes each package whose version is not yet on
 npm and tags it `<package>@<version>` (for example
-`@runpod/typescript-api-sdk@2.0.0`). Releases up to 0.7.0 were published from
+`@runpod/typescript-api-sdk@0.8.0`). Releases up to 0.7.0 were published from
 [runpod-mcp](https://github.com/runpod/runpod-mcp). Tags from before that move
 are plain `v<version>`, in the archived `runpod/typescript-api-sdk` repository.
 
 Publishing authenticates with npm trusted publishing (OIDC) through
-`pnpm publish`. Each package needs `runpod/js-sdk`, workflow `release.yml`, as
+`pnpm publish`. The package needs `runpod/js-sdk`, workflow `release.yml`, as
 its trusted publisher on npmjs.com; see
 [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/).
 
