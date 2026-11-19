@@ -40,15 +40,15 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build @runpod/typescript-api-sdk
-        run: pnpm --filter @runpod/typescript-api-sdk run build
+      - name: Build packages
+        run: pnpm run build
 
       # Opens or updates the "Version Packages" PR from pending changesets.
-      # Merging that PR publishes @runpod/typescript-api-sdk when its version
-      # is not on npm yet. runpod-sdk is ignored by changesets, and its 1.1.2
-      # is already on npm, so it is not published. The package needs this
-      # repository and release.yml configured as its trusted publisher on
-      # npmjs.com. Tags are <package>@<version>.
+      # Merging that PR publishes every package whose version is not on npm
+      # yet: @runpod/typescript-api-sdk and runpod-sdk, a fixed group that
+      # always shares one version. Each package needs this repository and
+      # release.yml configured as its trusted publisher on npmjs.com. Tags are
+      # <package>@<version>.
       - name: Create Release Pull Request or Publish to npm (OIDC)
         id: changesets
         uses: changesets/action@v1

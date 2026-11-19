@@ -11,7 +11,8 @@ and billing.
 [MCP server](https://github.com/runpod/runpod-mcp)
 
 Supports **Node.js 20+**, ESM, and CommonJS. For Serverless job submission and
-results, use [`runpod-sdk`](https://www.npmjs.com/package/runpod-sdk).
+results as well, use [`runpod-sdk`](https://www.npmjs.com/package/runpod-sdk). It
+includes everything in this package plus the Serverless job client.
 
 <!-- runpod-agent-setup:start -->
 **For AI agents:** setup instructions for the Runpod skills and MCP server are at https://agents.runpod.io/

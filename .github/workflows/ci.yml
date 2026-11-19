@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # The package declares Node 20+ in engines.
+        # Both packages declare Node 20+ in engines.
         node-version: [20, 22, 24]
 
     steps:
@@ -47,7 +47,7 @@ jobs:
           python-version: "3.11"
 
       # Installing also builds @runpod/typescript-api-sdk (its `prepare`
-      # script).
+      # script), which runpod-sdk imports.
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -56,8 +56,8 @@ jobs:
 
       # @runpod/typescript-api-sdk: generated schema freshness, patch layer,
       # query contract, typecheck, unit tests, packed-package contents, and
-      # examples.
-      - name: Check @runpod/typescript-api-sdk
+      # examples. runpod-sdk: typecheck, unit tests, and build.
+      - name: Check both packages
         run: pnpm check
 
   report-spec-update:
