@@ -5,7 +5,7 @@
 
 2.0.0: `runpod-sdk` and `@runpod/typescript-api-sdk` now release together from `runpod/js-sdk`, always at the same version.
 
-`@runpod/typescript-api-sdk` is the typed REST v2 client generated from the OpenAPI spec. Its API is unchanged from 0.8.0. The package now also ships `spec/openapi.yaml`. The jump from 0.8.0 to 2.0.0 aligns its version with `runpod-sdk`.
+`@runpod/typescript-api-sdk` is the typed REST v2 client generated from the OpenAPI spec. Its API is unchanged from 0.9.0. The package now also ships `spec/openapi.yaml`. The jump from 0.9.0 to 2.0.0 aligns its version with `runpod-sdk`.
 
 `runpod-sdk` re-exports everything from `@runpod/typescript-api-sdk` and keeps the Serverless job client. Breaking changes from 1.x:
 

@@ -47,8 +47,8 @@ jobs:
       # Merging that PR publishes every package whose version is not on npm
       # yet: @runpod/typescript-api-sdk and runpod-sdk, a fixed group that
       # always shares one version. Each package needs this repository and
-      # release.yml configured as its trusted publisher on npmjs.com. Tags are
-      # <package>@<version>.
+      # release.yml configured as its trusted publisher on npmjs.com.
+      # Tags are <package>@<version>.
       - name: Create Release Pull Request or Publish to npm (OIDC)
         id: changesets
         uses: changesets/action@v1
