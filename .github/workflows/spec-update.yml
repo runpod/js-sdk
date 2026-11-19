@@ -3,8 +3,8 @@
 #
 # It re-vendors packages/typescript-api-sdk/spec/openapi.yaml from production
 # through the SDK's patch layer, regenerates the SDK schema
-# (packages/typescript-api-sdk/src/generated/schema.ts), validates both
-# packages, and opens or updates one PR on automation/production-spec. When
+# (packages/typescript-api-sdk/src/generated/schema.ts), validates the
+# package, and opens or updates one PR on automation/production-spec. When
 # validation fails, the PR still opens, as a draft, so the fix can be pushed
 # onto the branch.
 #
