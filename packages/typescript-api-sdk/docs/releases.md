@@ -43,7 +43,7 @@ workflow (`.github/workflows/release.yml`). On every push to `main`,
 Changesets opens or updates one "Version Packages" PR. Merging that PR runs
 `changeset publish`, which publishes each package whose version is not yet on
 npm and tags it `<package>@<version>` (for example
-`@runpod/typescript-api-sdk@0.9.0`). Releases up to 0.8.0 were published from
+`@runpod/typescript-api-sdk@0.10.0`). Releases up to 0.9.0 were published from
 [runpod-mcp](https://github.com/runpod/runpod-mcp). Tags from before that move
 are plain `v<version>`, in the archived `runpod/typescript-api-sdk` repository.
 
