@@ -1,23 +1,25 @@
 {
-  "name": "runpod-sdk",
-  "version": "1.1.2",
-  "description": "JavaScript SDK for Runpod",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
-  "type": "module",
-  "author": "Runpod",
-  "dependencies": {
-    "ramda": "^0.29.0",
-    "xior": "^0.1.4"
-  },
-  "devDependencies": {
-    "@types/node": "^20.0.0",
-    "@types/ramda": "^0.29.7",
-    "dotenv": "^16.3.1",
-    "typescript": "^5.2.2"
+  "name": "runpod-js-sdk-workspace",
+  "private": true,
+  "description": "Workspace for runpod-sdk and @runpod/typescript-api-sdk",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=10"
   },
   "scripts": {
-    "build": "tsc",
-    "prepublishOnly": "npm run build"
+    "build": "pnpm --filter @runpod/typescript-api-sdk run build",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r run test",
+    "check": "pnpm --filter @runpod/typescript-api-sdk run check",
+    "spec:check": "pnpm --filter @runpod/typescript-api-sdk run spec:check",
+    "spec:pull": "pnpm --filter @runpod/typescript-api-sdk run spec:pull",
+    "generate": "pnpm --filter @runpod/typescript-api-sdk run generate",
+    "changeset": "changeset",
+    "changeset:version": "changeset version",
+    "changeset:publish": "changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.29.6"
   }
 }
