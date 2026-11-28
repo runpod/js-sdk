@@ -6829,6 +6829,32 @@ export interface components {
              *     ]
              */
             errors?: string[];
+            /**
+             * @description Machine-readable reason for the error. Absent when there is none.
+             *     Routes that set it declare which values they send; branch on
+             *     `code`, not on `detail`.
+             */
+            code?: string;
+        };
+        /**
+         * @description Machine-readable reason the request conflicts with the account's
+         *     current state. Branch on this, not on `detail`, whose wording can
+         *     change. Retrying unchanged does not help; `detail` says what to
+         *     change.
+         *
+         *     New values may be added. Treat a `code` you do not recognize as a
+         *     conflict you cannot resolve automatically.
+         * @enum {string}
+         */
+        ConflictCode: "GPU_CONCURRENCY_EXCEEDED" | "HIGH_PERFORMANCE_GPU_CONCURRENCY_EXCEEDED" | "CPU_CONCURRENCY_EXCEEDED" | "INSTANT_CLUSTER_NODE_LIMIT_EXCEEDED" | "FLASHBOOT_ENDPOINT_LIMIT_EXCEEDED" | "NETWORK_VOLUME_SIZE_EXCEEDED";
+        /**
+         * @description Problem body for a `409`: the standard error fields, plus `code` when
+         *     the conflict has a machine-readable reason. `code` is absent for the
+         *     other reasons a route answers `409`, such as a pod whose status does
+         *     not allow the action.
+         */
+        ConflictResponse: components["schemas"]["ErrorResponse"] & {
+            code?: components["schemas"]["ConflictCode"];
         };
         /**
          * @description Live per-window quota state. Optional — omitted for rate-limit-exempt
@@ -8983,16 +9009,21 @@ export interface operations {
             403: components["responses"]["ForbiddenError"];
             404: components["responses"]["NotFoundError"];
             /**
-             * @description The request carried `queue`, but the account already has as many
-             *     queued pods as its plan allows. Cancel a queued pod or upgrade the
-             *     plan.
+             * @description The request conflicts with the account's current state:
+             *
+             *     * The account is at a usage tier limit on concurrent GPUs or
+             *       vCPUs, or its plan includes none of that resource. Free capacity
+             *       or upgrade the plan.
+             *     * The request carried `queue`, but the account already has as many
+             *       queued pods as its plan allows. Cancel a queued pod or upgrade
+             *       the plan.
              */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ConflictResponse"];
                 };
             };
             /** @description The incoming request body, or the request it expands into, exceeds the 102400 byte limit or is rejected as too large. */
@@ -9285,7 +9316,18 @@ export interface operations {
             401: components["responses"]["UnauthorizedError"];
             403: components["responses"]["ForbiddenError"];
             404: components["responses"]["NotFoundError"];
-            /** @description Action not valid for current pod status */
+            /**
+             * @description The request conflicts with the pod's or the account's current
+             *     state:
+             *
+             *     * The action is not valid for the pod's current status.
+             *     * `start` and `restart` re-admit the pod, so the account's usage
+             *       tier limits on concurrent GPUs and vCPUs are checked again. Free
+             *       capacity or upgrade the plan. A `restart` stops the pod before it
+             *       re-admits it, so a `restart` refused this way leaves the pod
+             *       stopped rather than running — retry with `start` once there is
+             *       capacity.
+             */
             409: {
                 headers: {
                     RateLimit: components["headers"]["RateLimit"];
@@ -9293,7 +9335,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/problem+json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ConflictResponse"];
                 };
             };
             413: components["responses"]["RequestTooLargeError"];
@@ -9637,6 +9679,19 @@ export interface operations {
             400: components["responses"]["BadRequestError"];
             401: components["responses"]["UnauthorizedError"];
             403: components["responses"]["ForbiddenError"];
+            /**
+             * @description The account is at a usage tier limit on concurrent GPUs or on nodes
+             *     per Instant Cluster, or its plan includes none of that resource. Free
+             *     capacity or upgrade the plan.
+             */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ConflictResponse"];
+                };
+            };
             413: components["responses"]["RequestTooLargeError"];
             422: components["responses"]["UnprocessableEntityError"];
             429: components["responses"]["TooManyRequestsError"];
@@ -9921,6 +9976,19 @@ export interface operations {
             401: components["responses"]["UnauthorizedError"];
             403: components["responses"]["ForbiddenError"];
             404: components["responses"]["NotFoundError"];
+            /**
+             * @description The account is at a usage tier limit on endpoints with FlashBoot
+             *     enabled, or its plan does not include FlashBoot. Turn FlashBoot off on
+             *     another endpoint, or upgrade the plan.
+             */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ConflictResponse"];
+                };
+            };
             413: components["responses"]["RequestTooLargeError"];
             422: components["responses"]["UnprocessableEntityError"];
             429: components["responses"]["TooManyRequestsError"];
@@ -10055,6 +10123,20 @@ export interface operations {
             401: components["responses"]["UnauthorizedError"];
             403: components["responses"]["ForbiddenError"];
             404: components["responses"]["NotFoundError"];
+            /**
+             * @description The request turns FlashBoot on, and the account is at a usage tier
+             *     limit on endpoints with FlashBoot enabled, or its plan does not
+             *     include FlashBoot. Turn FlashBoot off on another endpoint, or upgrade
+             *     the plan.
+             */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ConflictResponse"];
+                };
+            };
             413: components["responses"]["RequestTooLargeError"];
             422: components["responses"]["UnprocessableEntityError"];
             429: components["responses"]["TooManyRequestsError"];
@@ -10889,6 +10971,19 @@ export interface operations {
             400: components["responses"]["BadRequestError"];
             401: components["responses"]["UnauthorizedError"];
             403: components["responses"]["ForbiddenError"];
+            /**
+             * @description The requested size is above the account's usage tier limit for network
+             *     volumes, or its plan includes no network volume storage. Choose a
+             *     smaller size or upgrade the plan.
+             */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ConflictResponse"];
+                };
+            };
             413: components["responses"]["RequestTooLargeError"];
             422: components["responses"]["UnprocessableEntityError"];
             429: components["responses"]["TooManyRequestsError"];
@@ -11044,6 +11139,19 @@ export interface operations {
             401: components["responses"]["UnauthorizedError"];
             403: components["responses"]["ForbiddenError"];
             404: components["responses"]["NotFoundError"];
+            /**
+             * @description The requested size is above the account's usage tier limit for network
+             *     volumes, or its plan includes no network volume storage. Choose a
+             *     smaller size or upgrade the plan.
+             */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ConflictResponse"];
+                };
+            };
             413: components["responses"]["RequestTooLargeError"];
             422: components["responses"]["UnprocessableEntityError"];
             429: components["responses"]["TooManyRequestsError"];
